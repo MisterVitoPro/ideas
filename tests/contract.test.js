@@ -137,3 +137,14 @@ test("fixture ledger maps every status to a template destination", () => {
   assert.ok(t.includes("Every `assumed` ledger row appears here"), "template routes assumed rows");
   assert.ok(t.includes("Every `open` ledger row appears here"), "template routes open rows");
 });
+
+const CRAFT = "skills/interview/references/question-craft.md";
+
+test("question-craft: taxonomy and wave guidance", () => {
+  const c = read(CRAFT);
+  for (const cat of ["Purpose", "Users", "Data", "Interfaces", "Edge cases", "Non-functionals", "Constraints", "Lifecycle"]) {
+    assert.ok(c.includes("## " + cat), "taxonomy category " + cat);
+  }
+  assert.ok(c.includes("recommended default"), "defaults guidance");
+  assert.ok(c.includes("later waves probe contradictions"), "descending-wave intent");
+});
