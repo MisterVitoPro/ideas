@@ -30,7 +30,7 @@ test("versions agree across plugin.json, package.json, CHANGELOG", () => {
     "CHANGELOG has an entry for the current version");
 });
 
-test("ledger stays out of version control by policy: repo gitignore exists", () => {
+test("repo hygiene: .gitignore exists and covers node_modules", () => {
   const gi = read(".gitignore");
   assert.ok(gi.includes("node_modules"), ".gitignore covers node_modules");
 });
@@ -93,6 +93,11 @@ test("skill: audit and critic contracts", () => {
   assert.ok(body.includes('"unaudited" banner'), "audit fallback");
   assert.ok(body.includes("single biggest miss"), "critic single-miss bound");
   assert.ok(body.includes("no critique available"), "critic fallback");
+  assert.ok(body.includes("`ideas:spec-critic` - advisory"), "critic advisory framing");
+  assert.ok(body.includes("chosen mitigation -> `decided`; deferred -> `open`; dismissed -> noted"),
+    "critic disposition mapping");
+  assert.ok(body.includes("architectural"), "ADR trigger: architectural decisions");
+  assert.ok(body.includes("scope is M or L"), "ADR trigger: scope bound");
 });
 
 test("skill: review gate with receipt and disposition", () => {

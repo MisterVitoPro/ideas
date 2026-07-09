@@ -16,5 +16,6 @@ Procedure:
 
 Return exactly this JSON shape as your final message:
 {"violations": [{"claim": "...", "location": "spec section", "reason": "unbacked | missing-row", "suggested_fix": "demote to Assumptions | add to Open questions"}], "clean": true}
+`clean` is true only when `violations` is empty; the example above shows the shape, not a real result.
 
 Rules: report every violation; do not soften findings; you have no write access by design - the orchestrator applies fixes and is bound by your findings.
