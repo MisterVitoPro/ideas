@@ -112,3 +112,28 @@ test("skill: context scan, ADRs, conflicts, git gating", () => {
   assert.ok(body.includes("references/question-craft.md") && body.includes("references/spec-template.md"),
     "references linked one level deep");
 });
+
+const TEMPLATE = "skills/interview/references/spec-template.md";
+const FIXTURE_LEDGER = "test-fixtures/ledger-example.md";
+
+test("spec template: mandatory honesty sections and EARS", () => {
+  const t = read(TEMPLATE);
+  assert.ok(t.includes("## Assumptions (unconfirmed)"), "assumptions section");
+  assert.ok(t.includes("## Open questions"), "open questions section");
+  assert.ok(t.includes("structurally mandatory even when empty"), "mandatory-even-empty rule");
+  assert.ok(t.includes("## Acceptance criteria (EARS)"), "EARS criteria section");
+  assert.ok(/WHEN .*THE SYSTEM SHALL/.test(t), "EARS example pattern");
+  assert.ok(t.includes("ADDED / MODIFIED / REMOVED"), "change deltas for brownfield");
+  assert.ok(t.includes("interfaces, file paths, acceptance criteria, constraints - not function bodies"),
+    "contracts-not-code rule");
+});
+
+test("fixture ledger maps every status to a template destination", () => {
+  const l = read(FIXTURE_LEDGER);
+  const t = read(TEMPLATE);
+  assert.ok(l.includes("## Decided") && l.includes("## Assumed (unconfirmed)") && l.includes("## Open"),
+    "fixture has all three status sections with rows");
+  assert.ok(/\| 1 \|/.test(l), "fixture has at least one numbered row");
+  assert.ok(t.includes("Every `assumed` ledger row appears here"), "template routes assumed rows");
+  assert.ok(t.includes("Every `open` ledger row appears here"), "template routes open rows");
+});
