@@ -34,3 +34,81 @@ test("ledger stays out of version control by policy: repo gitignore exists", () 
   const gi = read(".gitignore");
   assert.ok(gi.includes("node_modules"), ".gitignore covers node_modules");
 });
+
+const SKILL = "skills/interview/SKILL.md";
+
+test("skill frontmatter: name and trigger-crafted description", () => {
+  const { frontmatter } = fm(read(SKILL));
+  assert.match(frontmatter, /^name: interview$/m);
+  const desc = frontmatter.match(/^description: (.+)$/m)[1];
+  assert.ok(desc.length <= 350, "description <= 350 chars, got " + desc.length);
+  assert.ok(desc.includes("Not for typos, renames, or one-line fixes."), "exclusion clause present");
+});
+
+test("skill body: line budget and prose discipline", () => {
+  const text = read(SKILL);
+  const lines = text.split("\n").length;
+  assert.ok(lines <= 150, "SKILL.md <= 150 lines, got " + lines);
+  assert.ok(!/\b(MUST|NEVER|ALWAYS)\b/.test(text), "no all-caps imperatives");
+  assert.ok(text.includes("## Known gotchas"), "gotchas section present");
+});
+
+test("skill: hard gate and terminal state", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("The run ends at an approved spec"), "hard gate sentence");
+  assert.ok(body.includes("suggest next tools without invoking them"), "suggest-not-invoke");
+});
+
+test("skill: triage, decomposition, caps, wave budget", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("one AskUserQuestion call, up to 4 questions"), "triage batch shape");
+  assert.ok(body.includes("interview exactly one sub-project"), "decomposition rule");
+  assert.ok(body.includes("at most 5 AskUserQuestion calls before the approach checkpoint"), "call cap");
+  assert.ok(body.includes("4, then 3, then 2"), "descending wave counts");
+});
+
+test("skill: wave rules — batching, quality, escape, resize", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("2-4 related multiple-choice questions"), "batch size");
+  assert.ok(body.includes("reveal hidden assumptions, expose edge cases"), "no-obvious-questions rule");
+  assert.ok(body.includes("Draft the spec now"), "escape hatch");
+  assert.ok(body.includes("first question of the next wave"), "scope resize costs no extra call");
+});
+
+test("skill: ledger statuses and honesty invariant", () => {
+  const { body } = fm(read(SKILL));
+  for (const h of ["## Decided", "## Assumed (unconfirmed)", "## Open"]) {
+    assert.ok(body.includes(h), "ledger heading " + h);
+  }
+  assert.ok(body.includes("`decided` only when the user actually selected or typed"), "decided definition");
+  assert.ok(body.includes("a model guess is not promoted to `decided`"), "never-promote rule");
+  assert.ok(body.includes("re-ask once as plain numbered prose"), "empty-answer fallback");
+  assert.ok(body.includes("append the ledger file to the target repo's .gitignore"), "ledger gitignore policy");
+});
+
+test("skill: audit and critic contracts", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("ideas:spec-auditor") && body.includes("ideas:spec-critic"), "both agents dispatched");
+  assert.ok(body.includes("do not override an audit finding"), "no-self-verify");
+  assert.ok(body.includes('"unaudited" banner'), "audit fallback");
+  assert.ok(body.includes("single biggest miss"), "critic single-miss bound");
+  assert.ok(body.includes("no critique available"), "critic fallback");
+});
+
+test("skill: review gate with receipt and disposition", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("Approve / Add more / Modify / Start over"), "gate options");
+  assert.ok(body.includes("review receipt"), "receipt");
+  assert.ok(body.includes("presented verbatim"), "critic callout verbatim");
+  assert.ok(body.includes("Only Approve ends the run"), "no self-declared completeness");
+});
+
+test("skill: context scan, ADRs, conflicts, git gating", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("supersede it?"), "ADR conflict question");
+  assert.ok(body.includes("at most 2 MADR-lite ADRs"), "ADR emission bound");
+  assert.ok(body.includes("ask which wins"), "conflicting-instructions rule");
+  assert.ok(body.includes("git-gated"), "git optionality");
+  assert.ok(body.includes("references/question-craft.md") && body.includes("references/spec-template.md"),
+    "references linked one level deep");
+});
