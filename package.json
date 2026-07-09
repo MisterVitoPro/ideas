@@ -1,0 +1,11 @@
+{
+  "name": "ideas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Claude Code plugin: token-conscious elicitation interview producing audited design specs.",
+  "author": "MisterVitoPro",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test tests/contract.test.js"
+  }
+}
