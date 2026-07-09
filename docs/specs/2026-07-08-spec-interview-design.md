@@ -131,6 +131,56 @@ SemVer from 0.1.0. Same four-place bump protocol as plan-runner (plugin.json, co
 
 ## 11. Future enhancements (explicitly deferred)
 
-- Split-model economics: post-interview synthesis on a cheaper model (interview stays in the main loop; only non-interactive drafting can be delegated).
+- Split-model economics: post-interview synthesis on a cheaper model (interview stays in the main loop; only non-interactive drafting can be delegated). Pattern proven by OpenAI Deep Research's cheap-clarifier/expensive-executor split; unclaimed in the Claude Code ecosystem.
 - A `--plan-runner` output adapter emitting the spec pre-shaped for `/plan-runner:run`.
-- Coverage-taxonomy audit mode: a closing check that walks `question-craft.md`'s ambiguity taxonomy and lists uncovered categories as `open` entries.
+- Coverage-taxonomy audit mode: a closing check that walks `question-craft.md`'s ambiguity taxonomy and lists uncovered categories as `open` entries (Kiro-style machine-checked coverage, without spec-kit's rigidity).
+
+---
+
+## Appendix A — Research basis
+
+Findings from a three-agent research sweep (2026-07-08/09): interview-style elicitation tools, token/context-efficiency guidance, and the adjacent job-interview-prep space.
+
+### A.1 Landscape: the settled convention
+
+Every mature tool converges on: small multiple-choice question batches -> hard gate before implementation -> durable Markdown spec -> separate execution stage. spec-interview keeps this convention and does not innovate on it.
+
+- **superpowers `brainstorming`** (the reference implementation): 9-step gated flow, one question per message, multiple-choice preferred, unconditional hard gate, dated spec doc, handoff to `writing-plans`. https://github.com/obra/superpowers
+- **Harper Reed's "idea honing"** (the seed pattern): one-question-at-a-time prompt -> `spec.md` -> `prompt_plan.md` -> `todo.md`. https://harper.blog/2025/02/16/my-llm-codegen-workflow-atm/
+- **AskUserQuestion-native skills**: neonwatty `feature-interview` (5–10 rounds, assumption-revealing questions, approval gate); Jekudy `grillme-skill` (Socratic waves with *descending* question counts and between-wave state summaries — the direct ancestor of this design's wave table and ledger). https://neonwatty.com/posts/interview-skills-claude-code/ · https://github.com/Jekudy/grillme-skill
+- **PRD/spec-writer band** (crowded, template-driven): Requirements Elicitation ("elicit, don't invent"), Product Requirements (self-scored 90+ quality loop), prd-writer, prd-taskmaster (the only tool emitting executor-native output: interview -> graded PRD -> dependency-ordered task DAG). https://github.com/anombyte93/prd-taskmaster
+- **Cross-ecosystem**: Cursor Plan Mode 2.1 (auto-fired 3–5 clarifying questions at detected ambiguity); AWS Kiro Spec Mode (EARS-notation requirements + automated-reasoning gap detection); GitHub spec-kit `/speckit.clarify` (coverage-taxonomy questioning recorded into a `## Clarifications` spec section); OpenAI Deep Research (cheap intermediate model asks clarifying questions, expensive model executes). https://cursor.com/blog/plan-mode · https://kiro.dev/docs/specs/feature-specs/ · https://github.com/github/spec-kit
+
+### A.2 Documented pain points -> design responses
+
+| Pain point (source) | Design response |
+|---|---|
+| Same heavyweight interview for a typo fix and a subsystem; users skip ceremony, eat rework (Scott Logic spec-kit review; spec-kit #2496) | Triage batch sets S/M/L depth budget (section 5) |
+| Fixed question caps frustrate complex specs, walls of questions overwhelm simple ones (spec-kit #617) | Scope-scaled wave counts + "Draft now" escape, instead of one static cap |
+| Unanswered questions silently baked into specs as decisions (only grillme flags verified vs. unverified) | Three-status ledger; never-promote rule; mandatory Assumptions section (section 6) |
+| Interview state lives only in conversation; nothing survives `/clear` | On-disk ledger is the sole source of truth; resume reads the file, not the transcript |
+| Token cost accrues in the downstream artifact, re-read 3–4x (~45–60K tokens, superpowers #512) | Spec generated from the compact ledger; sections scale to scope |
+| AskUserQuestion returns empty answers inside plugin skills (claude-code #29547) | Empty-answer fallback: one prose re-ask, then `assumed` — never silent consent (section 8) |
+| Generic, inflated feedback is the universal complaint in the adjacent interview-AI space | Honesty invariants ported from plan-runner (no self-verify, no fabrication) |
+
+### A.3 Token-efficiency evidence behind the budgets
+
+Sources: Anthropic skill-authoring best practices (platform.claude.com), the "Equipping agents for the real world" engineering post, prompt-caching/pricing docs, and community measurements (claudefa.st, madewithlove, youcanbuildthings).
+
+| Fact | Number | Consequence in this design |
+|---|---|---|
+| Skill loading is 3-level: only name+description always resident; SKILL.md body loads on use and stays for the session | body budget < 500 lines official | SKILL.md capped harder, at 150 lines |
+| Skill-listing budget ~1% of context (~2K tokens, ~15–25 skills) before silent truncation; per-description cap 1024/1536 chars | 200–400 chars ≈ 50–100 tokens typical | One skill per plugin; description <= 350 chars, keyword-dense |
+| Compaction re-attaches only the front of each used skill | first ~5K tokens/skill, ~25K combined | Load-bearing flow front-loaded in SKILL.md |
+| References nested two levels deep get partially read (`head -100`) | one level only | `references/` files linked directly from SKILL.md |
+| Prompt cache TTL 5 min (write 1.25x, read 0.10x); a slow one-question-per-turn interview re-writes full context each turn | worst case for interactive flows | Batched AskUserQuestion (up to 4/call) collapses round-trips |
+| Subagents re-load context fresh; measured ~4x for 3 agents, 4–7x for multi-agent flows | throughput, not savings | No subagents in the interactive loop |
+| Session-start overhead is already ~20–30K tokens before the first keystroke | plugins compound it | Minimal always-resident surface: one description |
+
+### A.4 Adjacent space (job-interview prep) — deliberately out of scope
+
+The other reading of "interviewing plugin" is a crowded commercial space (Final Round AI, Verve, Exponent) with several single-author Claude Code skills already public (interview-mentor-skill, Claude-interview-coach-skill, pm-interview-prep). Its loudest lesson — users hate generic, score-inflated feedback — reinforces this design's honesty invariants, but the domain itself stays out of scope (section 3).
+
+### A.5 Positioning
+
+The elicitation-interview space has no polished, marketplace-distributed, token-conscious plugin. The field's open problems are calibration and honesty: sizing depth to scope, separating user decisions from model assumptions, resumable state, and artifact shape. spec-interview claims exactly those four; everything else follows the settled convention.
