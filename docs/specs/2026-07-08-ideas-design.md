@@ -52,7 +52,7 @@ Command surface in v0.1.0: `/ideas:interview [idea]`, and nothing else. Skill de
 Token rules baked into the skill's own structure (from Anthropic's skill-authoring guidance):
 - SKILL.md body <= 150 lines, load-bearing flow in the first screenful (compaction keeps only the front ~5K tokens of a skill).
 - References exactly one level deep, split by concern, read only when needed. `question-craft.md` is consulted when designing waves; `spec-template.md` only at drafting time.
-- No subagents anywhere in the interactive loop (4–7x token multiplier, and subagents cannot relay AskUserQuestion to the user). One deliberate exception: the post-draft ledger audit (section 5) is non-interactive, read-only, and runs exactly once — the isolation is the point, not a cost.
+- No subagents anywhere in the interactive loop (4–7x token multiplier, and subagents cannot relay AskUserQuestion to the user). Two deliberate exceptions, both non-interactive, read-only, run exactly once and in parallel after the draft: the ledger audit and the biggest-miss critic (section 5) — the isolation is the point, not a cost.
 
 Prose discipline (superpowers' measured bloat, #832: 69% of its skill lines were cuttable with no behavior loss):
 - No rationalization tables, red-flag lists, multi-page examples, or redundant negative restatements in SKILL.md.
@@ -68,8 +68,8 @@ Description/trigger craft (Claude measurably under-triggers skills):
 ```
 invoke -> resume check -> context scan -> triage batch -> waves (scope-sized)
        -> approach checkpoint [GATE 1] -> draft spec from ledger -> self-review
-       -> ledger audit (read-only, structural) -> user reviews spec [GATE 2]
-       -> done (suggest next tools)
+       -> ledger audit + biggest-miss critic (read-only, parallel)
+       -> user reviews spec [GATE 2] -> done (suggest next tools)
 ```
 
 **Resume check.** If a ledger matching the idea's slug exists and has `open` items or a non-`complete` status, offer: resume from ledger / start over. On resume, the ledger is the only state read — not the old transcript.
@@ -92,11 +92,13 @@ Descending counts are deliberate: early waves cover ground, later waves probe co
 
 **Ledger audit (structural honesty).** After self-review, a read-only audit verifies the draft against the ledger with fresh eyes: every normative claim in the spec must trace to a `decided` row, or appear under Assumptions (matching an `assumed` row) or Open questions (matching an `open` row). Anything unbacked is a violation: the claim is demoted to the Assumptions section and, if material, flagged to the user at gate 2. The audit runs as a read-only subagent whose only inputs are the ledger file and the draft spec — deliberately isolated from the interview conversation so it cannot "remember" justifications that were never recorded. The orchestrating skill never overrides an audit finding (plan-runner's no-self-verify rule, ported). If the audit cannot run (subagent failure), the spec is presented with an explicit "unaudited" banner — never silently.
 
+**Biggest-miss critic (adversarial completeness).** In parallel with the audit, a second read-only subagent (`ideas:spec-critic`) reads the draft spec plus ledger and answers exactly one question: *what is the single biggest miss in this plan* — the omission, risk, or unexamined assumption most likely to hurt once built — with 2–3 concrete mitigations. One miss, not a list: the bound is what keeps it cheap, forces prioritization, and makes it actionable (superpowers' defenders rank adversarial review as its most valuable behavior; Kiro's automated gap detection is the same instinct; a laundry list would be the "generic feedback" failure the interview-AI space is infamous for). The callout and mitigations are presented **verbatim** at gate 2 — never summarized away. The user's disposition lands in the ledger: a chosen mitigation becomes `decided`, an acknowledged-but-deferred miss becomes `open`, a dismissal is recorded as such. Unlike the audit (binding), the critic is advisory — but it can never be silently dropped; if it fails to run, gate 2 states "no critique available".
+
 **Approach checkpoint (gate 1).** The model presents 2–3 candidate approaches with trade-offs and a recommendation in one message, and the user picks via one AskUserQuestion call. Recorded in the ledger as `decided`.
 
 **Draft.** The spec is generated from the ledger plus `spec-template.md` — not from conversational memory. Then a self-review pass (placeholder scan, internal consistency, scope check, ambiguity check) with inline fixes.
 
-**Spec review (gate 2).** The user is asked to review the written spec file via one AskUserQuestion: Approve / Add more / Modify / Start over — accompanied by a one-line **review receipt** from the ledger ("14 decided, 3 assumed, 2 open; audit clean") so approval happens with the honesty picture in view. The agent never self-declares completeness — only Approve ends the run. Changes loop back to the draft step (and re-audit). On approval the run is complete; the skill suggests — but does not invoke — follow-on tools.
+**Spec review (gate 2).** The user is asked to review the written spec file via one AskUserQuestion: Approve / Add more / Modify / Start over — accompanied by a one-line **review receipt** from the ledger ("14 decided, 3 assumed, 2 open; audit clean") and the **biggest-miss callout** with its mitigations, so approval happens with the honesty picture and the sharpest known risk both in view. The agent never self-declares completeness — only Approve ends the run. Changes loop back to the draft step (and re-audit). On approval the run is complete; the skill suggests — but does not invoke — follow-on tools.
 
 ## 6. Ledger format
 
@@ -150,7 +152,7 @@ The spec stays contracts-only: interfaces, file paths, acceptance criteria, cons
 
 ## 9. Testing & verification
 
-- `tests/contract.test.js` (node --test) pins the load-bearing prose in SKILL.md, plan-runner style: the hard gate sentence; the 4-questions-per-batch cap; the 5-call pre-checkpoint cap; descending wave counts; the three ledger statuses and the never-promote rule; the empty-answer fallback; the mandatory Assumptions section; the "Draft now" escape; the ledger-audit step, its never-override rule, and the "unaudited" banner fallback; the scope-resize rule; the ledger gitignore policy; SKILL.md line count <= 150 and frontmatter description <= 350 chars.
+- `tests/contract.test.js` (node --test) pins the load-bearing prose in SKILL.md, plan-runner style: the hard gate sentence; the 4-questions-per-batch cap; the 5-call pre-checkpoint cap; descending wave counts; the three ledger statuses and the never-promote rule; the empty-answer fallback; the mandatory Assumptions section; the "Draft now" escape; the ledger-audit step, its never-override rule, and the "unaudited" banner fallback; the biggest-miss critic (single-miss bound, verbatim presentation at gate 2, ledger-recorded disposition, advisory-not-binding, "no critique available" fallback); the scope-resize rule; the ledger gitignore policy; SKILL.md line count <= 150 and frontmatter description <= 350 chars.
 - `claude plugin validate .` must pass.
 - A fixture ledger in `test-fixtures/` with decided/assumed/open rows, used by a contract test asserting the template maps every ledger status to its required spec section.
 - Contract tests additionally pin: the no-obvious-questions rule, the EARS acceptance-criteria requirement, the change-delta rule for brownfield specs, the contracts-not-code rule, the decomposition rule for multi-subsystem ideas, the ADR emission bounds (M/L scope only, architectural only, 1–2 max) and the ADR-conflict question, the review receipt at gate 2, the exclusion clause in the frontmatter description, and the absence of all-caps MUST/NEVER/ALWAYS imperatives in the SKILL.md body.
@@ -230,7 +232,8 @@ This spec eats its own dog food — the criteria writing-plans must satisfy, in 
 9. WHEN git is available, THE SKILL SHALL commit the spec (and any ADRs) and SHALL gitignore the ledger; WHEN git is unavailable, THE SKILL SHALL write all artifacts and skip git operations with a note.
 10. WHEN the approach decision is architectural and scope is M or L, THE SKILL SHALL write at most 2 MADR-lite ADRs to `docs/adr/`; WHEN existing ADRs conflict with the idea, THE SKILL SHALL raise the conflict as a question before proceeding.
 11. WHEN the idea spans multiple independent subsystems, THE SKILL SHALL propose decomposition at triage and interview exactly one sub-project.
-12. THE PLUGIN SHALL pass `node --test tests/contract.test.js` and `claude plugin validate .`, with SKILL.md <= 150 lines and its description <= 350 characters including an exclusion clause.
+12. WHEN the draft is complete, THE SKILL SHALL dispatch the biggest-miss critic alongside the audit, SHALL present its single callout and mitigations verbatim at gate 2, and SHALL record the user's disposition in the ledger; IF the critic cannot run THE SKILL SHALL state "no critique available" at gate 2.
+13. THE PLUGIN SHALL pass `node --test tests/contract.test.js` and `claude plugin validate .`, with SKILL.md <= 150 lines and its description <= 350 characters including an exclusion clause.
 
 ---
 
