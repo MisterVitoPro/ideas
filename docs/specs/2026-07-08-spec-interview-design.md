@@ -21,10 +21,12 @@ spec-interview is a Claude Code plugin that runs a token-conscious elicitation i
 - Track every requirement in an on-disk ledger with exactly three statuses — `decided`, `open`, `assumed` — and never present an assumption as a decision.
 - Stay cheap: batched multiple-choice questions, state in a file instead of conversation, lean always-resident skill body, zero subagents in the interactive loop.
 - Be resumable: after `/clear` (or days later), re-invoking the skill picks the interview up from the ledger alone.
+- Make honesty structural, not promised: a non-interactive ledger audit verifies the drafted spec against the ledger before the user ever sees it (section 5) — the same separation-of-roles principle as plan-runner's verifier, avoiding the self-scored-quality-loop pattern this design criticizes in competitors.
+- Fully replace superpowers:brainstorming (section 12): everything its interview achieves, at lower token cost, scope-sized, resumable, and honest by construction.
 
 ## 3. Non-goals
 
-- No implementation, planning, or code generation. The terminal state is an approved spec plus a pointer at possible next tools (plan-runner, superpowers:writing-plans). It invokes neither.
+- No implementation, planning, or code generation. The terminal state is an approved spec plus a pointer at possible next tools (plan-runner; or superpowers:writing-plans while superpowers is still installed — see section 12 for the replacement path). It invokes neither.
 - No coupling to plan-runner's wave format. The spec is plain Markdown any planner can consume. (A plan-runner-native output adapter is a possible future minor version.)
 - No mock-interview / job-interview-prep features. Different product; out of scope permanently for this plugin.
 - No visual companion, browser UI, or multi-model routing in v1.
@@ -49,14 +51,15 @@ Command surface: `/spec-interview:run [idea]`. One skill only — skill descript
 Token rules baked into the skill's own structure (from Anthropic's skill-authoring guidance):
 - SKILL.md body <= 150 lines, load-bearing flow in the first screenful (compaction keeps only the front ~5K tokens of a skill).
 - References exactly one level deep, split by concern, read only when needed. `question-craft.md` is consulted when designing waves; `spec-template.md` only at drafting time.
-- No subagents anywhere in the interactive loop (4–7x token multiplier, and subagents cannot relay AskUserQuestion to the user).
+- No subagents anywhere in the interactive loop (4–7x token multiplier, and subagents cannot relay AskUserQuestion to the user). One deliberate exception: the post-draft ledger audit (section 5) is non-interactive, read-only, and runs exactly once — the isolation is the point, not a cost.
 
 ## 5. Interview flow
 
 ```
 invoke -> resume check -> context scan -> triage batch -> waves (scope-sized)
        -> approach checkpoint [GATE 1] -> draft spec from ledger -> self-review
-       -> user reviews spec [GATE 2] -> done (suggest next tools)
+       -> ledger audit (read-only, structural) -> user reviews spec [GATE 2]
+       -> done (suggest next tools)
 ```
 
 **Resume check.** If a ledger matching the idea's slug exists and has `open` items or a non-`complete` status, offer: resume from ledger / start over. On resume, the ledger is the only state read — not the old transcript.
@@ -74,6 +77,10 @@ invoke -> resume check -> context scan -> triage batch -> waves (scope-sized)
 Descending counts are deliberate: early waves cover ground, later waves probe contradictions and blind spots. Hard cap: no more than 5 AskUserQuestion calls total before the approach checkpoint, ever.
 
 **Waves.** Each wave is one AskUserQuestion batch of 2–4 related multiple-choice questions (each with a recommended default), plus at most one open-ended prose question per wave reserved for the genuinely fuzzy heart of the idea. Every wave from the second onward includes a "Draft the spec now" escape option — choosing it ends questioning immediately and downgrades all unasked planned questions to `assumed` or `open`. After each wave the ledger file is updated; the conversation does not re-summarize answers.
+
+**Scope resize.** Users are unreliable at self-assessing scope, so triage's S/M/L is provisional. If answers in any wave reveal the scope was miscalled (an "S" sprouting subsystems, an "L" collapsing to a config change), the model proposes resizing as the first question of the *next* wave's batch — it never spends an extra AskUserQuestion call on it, and the resize decision lands in the ledger like any other.
+
+**Ledger audit (structural honesty).** After self-review, a read-only audit verifies the draft against the ledger with fresh eyes: every normative claim in the spec must trace to a `decided` row, or appear under Assumptions (matching an `assumed` row) or Open questions (matching an `open` row). Anything unbacked is a violation: the claim is demoted to the Assumptions section and, if material, flagged to the user at gate 2. The audit runs as a read-only subagent whose only inputs are the ledger file and the draft spec — deliberately isolated from the interview conversation so it cannot "remember" justifications that were never recorded. The orchestrating skill never overrides an audit finding (plan-runner's no-self-verify rule, ported). If the audit cannot run (subagent failure), the spec is presented with an explicit "unaudited" banner — never silently.
 
 **Approach checkpoint (gate 1).** The model presents 2–3 candidate approaches with trade-offs and a recommendation in one message, and the user picks via one AskUserQuestion call. Recorded in the ledger as `decided`.
 
@@ -105,7 +112,9 @@ status: in-progress   # in-progress | drafting | awaiting-review | complete
 Status rules (the honesty invariant, modeled on plan-runner's):
 - An entry is `decided` only if the user actually selected or typed an answer.
 - Empty, skipped, timed-out, or never-asked items are `assumed` (model supplies a labeled default) or `open` (no sane default exists). The model never promotes its own guess to `decided`.
-- The drafted spec must carry every `assumed` entry in a mandatory **Assumptions (unconfirmed)** section and every `open` entry under **Open questions**. A spec with an empty Assumptions section when the ledger has assumed rows is a bug.
+- The drafted spec must carry every `assumed` entry in a mandatory **Assumptions (unconfirmed)** section and every `open` entry under **Open questions**. A spec with an empty Assumptions section when the ledger has assumed rows is a bug — and the ledger audit (section 5) exists to catch exactly this class of bug structurally.
+
+Commit policy: the **spec is committed**; the **ledger is gitignored** (appended to the target repo's `.gitignore` on first write, gated on git availability — plan-runner's pattern for run artifacts). The ledger is interview exhaust: essential during elicitation and for resume, but it doesn't belong in anyone's PR. The spec's Assumptions and Open questions sections preserve the honesty information durably, so nothing auditable is lost when a ledger is cleaned up.
 
 ## 7. Spec output template (summary)
 
@@ -121,7 +130,7 @@ Status rules (the honesty invariant, modeled on plan-runner's):
 
 ## 9. Testing & verification
 
-- `tests/contract.test.js` (node --test) pins the load-bearing prose in SKILL.md, plan-runner style: the hard gate sentence; the 4-questions-per-batch cap; the 5-call pre-checkpoint cap; descending wave counts; the three ledger statuses and the never-promote rule; the empty-answer fallback; the mandatory Assumptions section; the "Draft now" escape; SKILL.md line count <= 150 and frontmatter description <= 350 chars.
+- `tests/contract.test.js` (node --test) pins the load-bearing prose in SKILL.md, plan-runner style: the hard gate sentence; the 4-questions-per-batch cap; the 5-call pre-checkpoint cap; descending wave counts; the three ledger statuses and the never-promote rule; the empty-answer fallback; the mandatory Assumptions section; the "Draft now" escape; the ledger-audit step, its never-override rule, and the "unaudited" banner fallback; the scope-resize rule; the ledger gitignore policy; SKILL.md line count <= 150 and frontmatter description <= 350 chars.
 - `claude plugin validate .` must pass.
 - A fixture ledger in `test-fixtures/` with decided/assumed/open rows, used by a contract test asserting the template maps every ledger status to its required spec section.
 
@@ -134,6 +143,27 @@ SemVer from 0.1.0. Same four-place bump protocol as plan-runner (plugin.json, co
 - Split-model economics: post-interview synthesis on a cheaper model (interview stays in the main loop; only non-interactive drafting can be delegated). Pattern proven by OpenAI Deep Research's cheap-clarifier/expensive-executor split; unclaimed in the Claude Code ecosystem.
 - A `--plan-runner` output adapter emitting the spec pre-shaped for `/plan-runner:run`.
 - Coverage-taxonomy audit mode: a closing check that walks `question-craft.md`'s ambiguity taxonomy and lists uncovered categories as `open` entries (Kiro-style machine-checked coverage, without spec-kit's rigidity).
+
+## 12. Superpowers replacement path
+
+The strategic goal is to retire superpowers from this ecosystem once spec-interview (plus the existing plan-runner and qa-swarm) covers what it actually gets used for. That reframes positioning: spec-interview is not a peaceful neighbor of `brainstorming` — it is its successor, and the design must win the same triggers brainstorming wins today.
+
+**What this design does better than brainstorming, per the findings:**
+
+| brainstorming (superpowers) | spec-interview |
+|---|---|
+| One question per turn — worst case for the 5-minute prompt cache; a slow interview re-writes full context every turn | Batched AskUserQuestion waves, hard call caps |
+| Unconditional full ceremony "regardless of perceived simplicity" — the exact rigidity users abandon in spec-kit | Scope-sized depth (S/M/L) with mid-flight resize |
+| State lives in the transcript; a `/clear` kills the interview | On-disk ledger; resume from the file alone |
+| Assumptions invisible — unanswered questions become spec content indistinguishable from decisions | Three-status ledger + audited Assumptions section |
+| Honesty by self-review only | Read-only ledger audit, never overridden |
+| Skill body rides the whole session; enforcement via a heavyweight always-injected meta-skill | Lean front-loaded body, lazy references, one description in the listing budget |
+
+**Trigger strategy (transition, then takeover):**
+- *Phase 1 — coexistence (superpowers still installed):* superpowers' meta-skill mandates brainstorming for any "let's build X", so ambient invocation is unwinnable. spec-interview is honest about being command-first: `/spec-interview:run`. Its description claims the adjacent, non-colliding vocabulary — spec, requirements, elicitation, interview, resumable, token-lean — so "interview me about this idea" or "write a spec" reaches it even now.
+- *Phase 2 — takeover (superpowers removed):* the description alone carries ambient triggering: "Use when the user wants to build, design, plan, or spec a feature or project" plus the phase-1 keywords, within the <= 350-char budget. No always-injected meta-skill: the findings show that pattern costs every session to enforce ceremony users resent. If ambient trigger reliability proves insufficient in practice, a minimal SessionStart hint (one sentence, plan-runner's inlined-hook pattern) is the fallback — measured against its per-session token cost, not adopted by default.
+
+**What replacing superpowers does NOT require this plugin to do:** execution discipline (plan-runner), verification and bug-hunting (qa-swarm), and git workflow skills are already covered in this ecosystem. The one genuine gap left is `writing-plans` — and superpowers' own issue tracker (#512) shows its monolithic `plan.md` output is a ~45–60K-token liability when re-read during execution. The successor there is the deferred `--plan-runner` adapter above, emitting per-wave/per-task files shaped as `/plan-runner:run` input rather than one monolith. When that lands (target: 0.2.x), the superpowers dependency can be dropped entirely.
 
 ---
 
