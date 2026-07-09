@@ -181,3 +181,11 @@ test("trigger queries: at least 20, both polarities, messy phrasing", () => {
   assert.ok(should.length >= 12, "at least 12 should-trigger queries, got " + should.length);
   assert.ok(shouldNot.length >= 8, "at least 8 should-not-trigger queries, got " + shouldNot.length);
 });
+
+test("docs + version reflect the v0.1.0 interview feature", () => {
+  const readme = read("README.md");
+  assert.ok(readme.includes("/ideas:interview"), "README documents the command");
+  assert.ok(readme.includes("decided"), "README explains ledger statuses");
+  assert.ok(readme.includes("spec-auditor") && readme.includes("spec-critic"), "README names both agents");
+  assert.ok(readme.includes("MisterVitoPro"), "author credit");
+});
