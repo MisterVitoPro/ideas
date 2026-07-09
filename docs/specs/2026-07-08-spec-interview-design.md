@@ -74,9 +74,9 @@ invoke -> resume check -> context scan -> triage batch -> waves (scope-sized)
 
 **Resume check.** If a ledger matching the idea's slug exists and has `open` items or a non-`complete` status, offer: resume from ledger / start over. On resume, the ledger is the only state read — not the old transcript.
 
-**Context scan.** Lightweight look at the target repo (README, docs/, recent commits) before asking anything, so no question wastes the user's time on facts the repo already answers. Read-only.
+**Context scan.** Lightweight look at the target repo (README, docs/, recent commits, and `docs/adr/` if present) before asking anything, so no question wastes the user's time on facts the repo already answers. Existing ADRs are treated as already-decided ground: never re-asked; if the new idea conflicts with a standing ADR, that becomes an explicit question ("ADR-NNNN chose X — supersede it?") rather than a silent contradiction. Re-running against an already-approved spec works the same way: the old spec is context, and the new spec is expressed as change deltas against it. Read-only.
 
-**Triage batch.** One AskUserQuestion call (up to 4 questions) establishing: scope size (S/M/L, model recommends one), who consumes the spec, hard constraints, greenfield vs. existing code. Scope sets the depth budget:
+**Triage batch.** One AskUserQuestion call (up to 4 questions) establishing: scope size (S/M/L, model recommends one), who consumes the spec, hard constraints, greenfield vs. existing code. If the idea describes multiple independent subsystems, triage flags it for **decomposition** before any detail questions: the model proposes a sub-project split, the user picks the first sub-project to interview, and the rest are recorded in the ledger as `open` (future interviews) — one spec per sub-project, never one sprawling spec. Scope sets the depth budget:
 
 | Scope | Waves after triage | Max MC questions per wave |
 |-------|--------------------|---------------------------|
@@ -96,7 +96,7 @@ Descending counts are deliberate: early waves cover ground, later waves probe co
 
 **Draft.** The spec is generated from the ledger plus `spec-template.md` — not from conversational memory. Then a self-review pass (placeholder scan, internal consistency, scope check, ambiguity check) with inline fixes.
 
-**Spec review (gate 2).** The user is asked to review the written spec file via one AskUserQuestion: Approve / Add more / Modify / Start over. The agent never self-declares completeness — only Approve ends the run. Changes loop back to the draft step (and re-audit). On approval the run is complete; the skill suggests — but does not invoke — follow-on tools.
+**Spec review (gate 2).** The user is asked to review the written spec file via one AskUserQuestion: Approve / Add more / Modify / Start over — accompanied by a one-line **review receipt** from the ledger ("14 decided, 3 assumed, 2 open; audit clean") so approval happens with the honesty picture in view. The agent never self-declares completeness — only Approve ends the run. Changes loop back to the draft step (and re-audit). On approval the run is complete; the skill suggests — but does not invoke — follow-on tools.
 
 ## 6. Ledger format
 
@@ -124,7 +124,7 @@ Status rules (the honesty invariant, modeled on plan-runner's):
 - Empty, skipped, timed-out, or never-asked items are `assumed` (model supplies a labeled default) or `open` (no sane default exists). The model never promotes its own guess to `decided`.
 - The drafted spec must carry every `assumed` entry in a mandatory **Assumptions (unconfirmed)** section and every `open` entry under **Open questions**. A spec with an empty Assumptions section when the ledger has assumed rows is a bug — and the ledger audit (section 5) exists to catch exactly this class of bug structurally.
 
-Commit policy: the **spec is committed**; the **ledger is gitignored** (appended to the target repo's `.gitignore` on first write, gated on git availability — plan-runner's pattern for run artifacts). The ledger is interview exhaust: essential during elicitation and for resume, but it doesn't belong in anyone's PR. The spec's Assumptions and Open questions sections preserve the honesty information durably, so nothing auditable is lost when a ledger is cleaned up.
+Commit policy: the **spec is committed** (and any ADRs, section 7); the **ledger is gitignored** (appended to the target repo's `.gitignore` on first write, gated on git availability — plan-runner's pattern for run artifacts). The ledger is interview exhaust: essential during elicitation and for resume, but it doesn't belong in anyone's PR. The spec's Assumptions and Open questions sections preserve the honesty information durably, so nothing auditable is lost when a ledger is cleaned up. Lifecycle: a ledger whose status reaches `complete` is kept (it's gitignored and costs nothing, and it lets a later re-interview see exactly what was decided vs. assumed) but is safe to delete at any time.
 
 ## 7. Spec output template (summary)
 
@@ -135,6 +135,8 @@ Two format rules imported from the strongest competing spec systems:
 - **Brownfield specs use change deltas** (OpenSpec's ADDED / MODIFIED / REMOVED framing for requirements touching existing behavior) so the spec describes the *change*, not a re-imagined system — the failure mode where spec tools hallucinate new requirements onto existing code.
 
 The spec stays contracts-only: interfaces, file paths, acceptance criteria, constraints — never function bodies, test code, or shell commands. Over-specified plans that freeze implementation detail are superpowers' sharpest unresolved critique (#895); when execution learns something, a contract survives it, prescribed code doesn't.
+
+**ADR emission.** When the approach checkpoint's decision is genuinely architectural (structure, storage, protocol, dependency — not naming or copy) and scope is M or L, the skill also writes at most 1–2 **MADR-lite ADRs** (~15 lines: status, context, options considered, decision, consequences) to `docs/adr/NNNN-<slug>.md`. ADRs are durable record, so they are **committed** (unlike the ledger); the spec's Chosen approach section links the ADR instead of duplicating it, and the ledger audit traces through the link. Decisions compound: the next interview's context scan reads these ADRs and skips every question they already answer — each run makes the next one cheaper. Requirements and preference decisions stay in the spec; they never become ADRs. No ADR tooling (indexes, supersede automation) in v1 — emit and read only.
 
 ## 8. Error handling
 
@@ -151,7 +153,7 @@ The spec stays contracts-only: interfaces, file paths, acceptance criteria, cons
 - `tests/contract.test.js` (node --test) pins the load-bearing prose in SKILL.md, plan-runner style: the hard gate sentence; the 4-questions-per-batch cap; the 5-call pre-checkpoint cap; descending wave counts; the three ledger statuses and the never-promote rule; the empty-answer fallback; the mandatory Assumptions section; the "Draft now" escape; the ledger-audit step, its never-override rule, and the "unaudited" banner fallback; the scope-resize rule; the ledger gitignore policy; SKILL.md line count <= 150 and frontmatter description <= 350 chars.
 - `claude plugin validate .` must pass.
 - A fixture ledger in `test-fixtures/` with decided/assumed/open rows, used by a contract test asserting the template maps every ledger status to its required spec section.
-- Contract tests additionally pin: the no-obvious-questions rule, the EARS acceptance-criteria requirement, the change-delta rule for brownfield specs, the contracts-not-code rule, the exclusion clause in the frontmatter description, and the absence of all-caps MUST/NEVER/ALWAYS imperatives in the SKILL.md body.
+- Contract tests additionally pin: the no-obvious-questions rule, the EARS acceptance-criteria requirement, the change-delta rule for brownfield specs, the contracts-not-code rule, the decomposition rule for multi-subsystem ideas, the ADR emission bounds (M/L scope only, architectural only, 1–2 max) and the ADR-conflict question, the review receipt at gate 2, the exclusion clause in the frontmatter description, and the absence of all-caps MUST/NEVER/ALWAYS imperatives in the SKILL.md body.
 - Trigger eval before each release: ~20 should/should-not-trigger queries in realistic messy phrasing, run 3x each; the description iterates until held-out precision/recall are acceptable. Queries live in `test-fixtures/trigger-queries.md` so the eval is repeatable.
 
 ## 10. Versioning & release
@@ -183,7 +185,7 @@ The strategic goal is to retire superpowers from this ecosystem once spec-interv
 - *Phase 1 — coexistence (superpowers still installed):* superpowers' meta-skill mandates brainstorming for any "let's build X", so ambient invocation is unwinnable. spec-interview is honest about being command-first: `/spec-interview:run`. Its description claims the adjacent, non-colliding vocabulary — spec, requirements, elicitation, interview, resumable, token-lean — so "interview me about this idea" or "write a spec" reaches it even now.
 - *Phase 2 — takeover (superpowers removed):* the description alone carries ambient triggering: "Use when the user wants to build, design, plan, or spec a feature or project" plus the phase-1 keywords, within the <= 350-char budget. No always-injected meta-skill: the findings show that pattern costs every session to enforce ceremony users resent. If ambient trigger reliability proves insufficient in practice, a minimal SessionStart hint (one sentence, plan-runner's inlined-hook pattern) is the fallback — measured against its per-session token cost, not adopted by default.
 
-**What replacing superpowers does NOT require this plugin to do:** execution discipline (plan-runner), verification and bug-hunting (qa-swarm), and git workflow skills are already covered in this ecosystem. The one genuine gap left is `writing-plans` — and superpowers' own issue tracker shows its two deepest unresolved critiques live exactly there: monolithic `plan.md` files re-read 3–4x for ~45–60K tokens (#512), and plans that embed full function bodies, test files, and shell commands which become *wrong* the moment execution learns something (#895). The successor is the deferred `--plan-runner` adapter above, emitting per-wave/per-task files (execution reads ~2.5K per task, not the whole monolith) that carry interface contracts and EARS acceptance criteria — never implementation code. When that lands (target: 0.2.x), the superpowers dependency can be dropped entirely.
+**What replacing superpowers does NOT require this plugin to do:** execution discipline (plan-runner), verification and bug-hunting (qa-swarm), and git workflow skills are already covered in this ecosystem. The one genuine gap left is `writing-plans` — and superpowers' own issue tracker shows its two deepest unresolved critiques live exactly there: monolithic `plan.md` files re-read 3–4x for ~45–60K tokens (#512), and plans that embed full function bodies, test files, and shell commands which become *wrong* the moment execution learns something (#895). The successor is the deferred `--plan-runner` adapter above, emitting per-wave/per-task files (execution reads ~2.5K per task, not the whole monolith) that carry interface contracts and EARS acceptance criteria — never implementation code. When that lands (target: 0.2.x), the superpowers dependency can be dropped entirely. The adapter is also the dogfood milestone: it gets specced by running `/spec-interview:run` on itself — the plugin's first real trial as its own customer.
 
 **The removal decision is gated on evidence, not vibes:** phase 2 (uninstalling superpowers) happens only after the benchmark in section 13 shows spec-interview matching or beating brainstorming on spec quality and downstream success at materially lower cost. The critique research is encouraging — superpowers' maintainer concedes the cost problem ("tokens are expensive and Superpowers uses a ton of them"; v6 cut token spend 60%), independent measurement puts its full loop at ~3x bare Claude Code and *net-negative on simple tasks*, and the community verdict is "the methodology survives, the monolith doesn't" — but encouraging research is not a measurement of *this* plugin.
 
@@ -209,7 +211,24 @@ The strategic goal is to retire superpowers from this ecosystem once spec-interv
 
 **Pre-declared success bar (the phase-2 gate from section 12):** spec-interview must match or beat brainstorming on tier D pass rate and the tier C composite, while spending at least 30% fewer output tokens per spec and imposing lower user burden. If it misses, the spec's claims are revised — never the numbers. (The plan-runner honesty invariants apply to our own benchmark first.)
 
-**Timing.** The harness lands in 0.1.x alongside the plugin; results are a prerequisite for the superpowers removal decision, not a post-hoc justification of it.
+**Timing.** The harness lands in 0.1.x alongside the plugin; results are a prerequisite for the superpowers removal decision, not a post-hoc justification of it. Bench prerequisite: a pinned superpowers version installed for the comparison runs (recorded in the results alongside the pinned model IDs), so the numbers name exactly what they beat.
+
+## 14. Acceptance criteria (v0.1.0, EARS)
+
+This spec eats its own dog food — the criteria writing-plans must satisfy, in the notation section 7 mandates:
+
+1. WHEN `/spec-interview:run` is invoked with an idea in a repo containing no matching ledger, THE SKILL SHALL complete triage in exactly one AskUserQuestion call.
+2. WHEN triage sets scope S, M, or L, THE SKILL SHALL ask no more than 1, 2, or 3 post-triage waves respectively, and SHALL make no more than 5 AskUserQuestion calls before the approach checkpoint.
+3. WHEN a wave answer is empty, skipped, or timed out, THE SKILL SHALL re-ask once in prose, and IF still unanswered SHALL record the item as `assumed` or `open` — never as `decided`.
+4. WHEN the spec is drafted, THE SKILL SHALL generate it from the ledger file and the template, and every `assumed` and `open` ledger row SHALL appear in the spec's Assumptions or Open questions section.
+5. WHEN the draft is complete, THE SKILL SHALL run the read-only ledger audit before gate 2, and IF the audit cannot run THE SKILL SHALL present the spec with an explicit "unaudited" banner.
+6. WHEN the audit flags a claim with no `decided` backing, THE SKILL SHALL demote the claim to Assumptions and SHALL NOT override the finding.
+7. WHEN gate 2 is presented, THE SKILL SHALL include the review receipt (decided/assumed/open counts and audit status), and THE SKILL SHALL end the run only on explicit Approve.
+8. WHEN a matching in-progress ledger exists at invocation, THE SKILL SHALL offer resume, and on resume SHALL read interview state only from the ledger.
+9. WHEN git is available, THE SKILL SHALL commit the spec (and any ADRs) and SHALL gitignore the ledger; WHEN git is unavailable, THE SKILL SHALL write all artifacts and skip git operations with a note.
+10. WHEN the approach decision is architectural and scope is M or L, THE SKILL SHALL write at most 2 MADR-lite ADRs to `docs/adr/`; WHEN existing ADRs conflict with the idea, THE SKILL SHALL raise the conflict as a question before proceeding.
+11. WHEN the idea spans multiple independent subsystems, THE SKILL SHALL propose decomposition at triage and interview exactly one sub-project.
+12. THE PLUGIN SHALL pass `node --test tests/contract.test.js` and `claude plugin validate .`, with SKILL.md <= 150 lines and its description <= 350 characters including an exclusion clause.
 
 ---
 
