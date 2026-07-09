@@ -173,3 +173,11 @@ test("spec-critic: least privilege, single-miss bound, honest-when-tight", () =>
   assert.ok(body.includes("name the sharpest residual risk rather than inventing a problem"),
     "no fabricated findings");
 });
+
+test("trigger queries: at least 20, both polarities, messy phrasing", () => {
+  const q = read("test-fixtures/trigger-queries.md");
+  const should = q.match(/^SHOULD: /gm) || [];
+  const shouldNot = q.match(/^SHOULD-NOT: /gm) || [];
+  assert.ok(should.length >= 12, "at least 12 should-trigger queries, got " + should.length);
+  assert.ok(shouldNot.length >= 8, "at least 8 should-not-trigger queries, got " + shouldNot.length);
+});
