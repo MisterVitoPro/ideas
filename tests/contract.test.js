@@ -161,3 +161,15 @@ test("spec-auditor: least privilege and binding audit rules", () => {
   assert.ok(body.includes("empty Assumptions section with assumed rows in the ledger is a violation"),
     "empty-assumptions rule");
 });
+
+const CRITIC = "agents/spec-critic.md";
+
+test("spec-critic: least privilege, single-miss bound, honest-when-tight", () => {
+  const { frontmatter, body } = fm(read(CRITIC));
+  assert.match(frontmatter, /^name: spec-critic$/m);
+  assert.match(frontmatter, /^tools: Read, Grep, Glob$/m);
+  assert.ok(body.includes("exactly one miss"), "single-miss bound");
+  assert.ok(body.includes('"biggest_miss"') && body.includes('"mitigations"'), "JSON return contract");
+  assert.ok(body.includes("name the sharpest residual risk rather than inventing a problem"),
+    "no fabricated findings");
+});
