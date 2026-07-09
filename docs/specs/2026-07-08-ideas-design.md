@@ -1,4 +1,4 @@
-# spec-interview — design spec
+# ideas — design spec
 
 Date: 2026-07-08
 Status: awaiting user approval
@@ -12,7 +12,7 @@ Interview-style elicitation tools (superpowers:brainstorming, spec-kit `/clarify
 2. **Invisible assumptions.** When the user doesn't answer something, every tool silently bakes the model's guess into the spec as if the user decided it.
 3. **Context bloat, no resumability.** The interview lives entirely in conversation context; nothing survives `/clear`, and long interviews thrash the prompt cache (one-question-per-turn plus a >5-minute human pause forces a full cache re-write per turn).
 
-spec-interview is a Claude Code plugin that runs a token-conscious elicitation interview and fixes all three.
+ideas is a Claude Code plugin that runs a token-conscious elicitation interview and fixes all three.
 
 ## 2. Goals
 
@@ -33,13 +33,13 @@ spec-interview is a Claude Code plugin that runs a token-conscious elicitation i
 
 ## 4. Plugin shape
 
-Repo: `D:\claude_plugins\spec-interview`. One skill, mirroring plan-runner's layout and test culture:
+Repo: `D:\claude_plugins\ideas`. The plugin is the long-term home of the whole idea-to-PR pipeline (`/ideas:interview` -> `/ideas:execute-plan` -> `/ideas:pr`), but v0.1.0 ships exactly one skill — the interview — mirroring plan-runner's layout and test culture:
 
 ```
-spec-interview/
-  .claude-plugin/plugin.json      name: spec-interview, version 0.1.0
-  skills/run/SKILL.md             the interviewer (lean; target <= 150 lines)
-  skills/run/references/
+ideas/
+  .claude-plugin/plugin.json      name: ideas, version 0.1.0
+  skills/interview/SKILL.md             the interviewer (lean; target <= 150 lines)
+  skills/interview/references/
     question-craft.md             wave-design guidance + ambiguity taxonomy (lazy-loaded)
     spec-template.md              output spec skeleton incl. mandatory Assumptions section
   tests/contract.test.js          pins load-bearing phrases in SKILL.md (node --test)
@@ -47,7 +47,7 @@ spec-interview/
   README.md  CHANGELOG.md  package.json  LICENSE
 ```
 
-Command surface: `/spec-interview:run [idea]`. One skill only — skill descriptions compete in a ~2K-token session-wide listing budget, so the plugin ships a single keyword-dense description (<= 350 chars, third person, states what + when).
+Command surface in v0.1.0: `/ideas:interview [idea]`, and nothing else. Skill descriptions compete in a ~2K-token session-wide listing budget, so the plugin ships a single keyword-dense description (<= 350 chars, third person, states what + when) and grows to at most three skills at the end-state (`interview`, `execute-plan`, `pr` — section 12), never a grab-bag.
 
 Token rules baked into the skill's own structure (from Anthropic's skill-authoring guidance):
 - SKILL.md body <= 150 lines, load-bearing flow in the first screenful (compaction keeps only the front ~5K tokens of a skill).
@@ -168,11 +168,11 @@ SemVer from 0.1.0. Same four-place bump protocol as plan-runner (plugin.json, co
 
 ## 12. Superpowers replacement path
 
-The strategic goal is to retire superpowers from this ecosystem once spec-interview (plus the existing plan-runner and qa-swarm) covers what it actually gets used for. That reframes positioning: spec-interview is not a peaceful neighbor of `brainstorming` — it is its successor, and the design must win the same triggers brainstorming wins today.
+The strategic goal is to retire superpowers from this ecosystem once ideas (plus the existing plan-runner and qa-swarm) covers what it actually gets used for. That reframes positioning: ideas is not a peaceful neighbor of `brainstorming` — it is its successor, and the design must win the same triggers brainstorming wins today.
 
 **What this design does better than brainstorming, per the findings:**
 
-| brainstorming (superpowers) | spec-interview |
+| brainstorming (superpowers) | ideas |
 |---|---|
 | One question per turn — worst case for the 5-minute prompt cache; a slow interview re-writes full context every turn | Batched AskUserQuestion waves, hard call caps |
 | Unconditional full ceremony "regardless of perceived simplicity" — the exact rigidity users abandon in spec-kit | Scope-sized depth (S/M/L) with mid-flight resize |
@@ -182,22 +182,24 @@ The strategic goal is to retire superpowers from this ecosystem once spec-interv
 | Skill body rides the whole session; enforcement via a heavyweight always-injected meta-skill | Lean front-loaded body, lazy references, one description in the listing budget |
 
 **Trigger strategy (transition, then takeover):**
-- *Phase 1 — coexistence (superpowers still installed):* superpowers' meta-skill mandates brainstorming for any "let's build X", so ambient invocation is unwinnable. spec-interview is honest about being command-first: `/spec-interview:run`. Its description claims the adjacent, non-colliding vocabulary — spec, requirements, elicitation, interview, resumable, token-lean — so "interview me about this idea" or "write a spec" reaches it even now.
+- *Phase 1 — coexistence (superpowers still installed):* superpowers' meta-skill mandates brainstorming for any "let's build X", so ambient invocation is unwinnable. ideas is honest about being command-first: `/ideas:interview`. Its description claims the adjacent, non-colliding vocabulary — spec, requirements, elicitation, interview, resumable, token-lean — so "interview me about this idea" or "write a spec" reaches it even now.
 - *Phase 2 — takeover (superpowers removed):* the description alone carries ambient triggering: "Use when the user wants to build, design, plan, or spec a feature or project" plus the phase-1 keywords, within the <= 350-char budget. No always-injected meta-skill: the findings show that pattern costs every session to enforce ceremony users resent. If ambient trigger reliability proves insufficient in practice, a minimal SessionStart hint (one sentence, plan-runner's inlined-hook pattern) is the fallback — measured against its per-session token cost, not adopted by default.
 
-**What replacing superpowers does NOT require this plugin to do:** execution discipline (plan-runner), verification and bug-hunting (qa-swarm), and git workflow skills are already covered in this ecosystem. The one genuine gap left is `writing-plans` — and superpowers' own issue tracker shows its two deepest unresolved critiques live exactly there: monolithic `plan.md` files re-read 3–4x for ~45–60K tokens (#512), and plans that embed full function bodies, test files, and shell commands which become *wrong* the moment execution learns something (#895). The successor is the deferred `--plan-runner` adapter above, emitting per-wave/per-task files (execution reads ~2.5K per task, not the whole monolith) that carry interface contracts and EARS acceptance criteria — never implementation code. When that lands (target: 0.2.x), the superpowers dependency can be dropped entirely. The adapter is also the dogfood milestone: it gets specced by running `/spec-interview:run` on itself — the plugin's first real trial as its own customer.
+**What replacing superpowers does NOT require this plugin to do:** execution discipline (plan-runner), verification and bug-hunting (qa-swarm), and git workflow skills are already covered in this ecosystem. The one genuine gap left is `writing-plans` — and superpowers' own issue tracker shows its two deepest unresolved critiques live exactly there: monolithic `plan.md` files re-read 3–4x for ~45–60K tokens (#512), and plans that embed full function bodies, test files, and shell commands which become *wrong* the moment execution learns something (#895). The successor is the deferred `--plan-runner` adapter above, emitting per-wave/per-task files (execution reads ~2.5K per task, not the whole monolith) that carry interface contracts and EARS acceptance criteria — never implementation code. When that lands (target: 0.2.x), the superpowers dependency can be dropped entirely. The adapter is also the dogfood milestone: it gets specced by running `/ideas:interview` on itself — the plugin's first real trial as its own customer.
 
-**The removal decision is gated on evidence, not vibes:** phase 2 (uninstalling superpowers) happens only after the benchmark in section 13 shows spec-interview matching or beating brainstorming on spec quality and downstream success at materially lower cost. The critique research is encouraging — superpowers' maintainer concedes the cost problem ("tokens are expensive and Superpowers uses a ton of them"; v6 cut token spend 60%), independent measurement puts its full loop at ~3x bare Claude Code and *net-negative on simple tasks*, and the community verdict is "the methodology survives, the monolith doesn't" — but encouraging research is not a measurement of *this* plugin.
+**Skill-migration roadmap (the `ideas` end-state):** the plugin's command surface converges on the full pipeline under one name — `/ideas:interview` -> `/ideas:execute-plan` -> `/ideas:pr`. v0.1.0 ships `interview` only. After the benchmark passes and the plan-runner adapter lands (0.2.x), plan-runner's `run` and `pr` skills migrate into this repo as `ideas:execute-plan` and `ideas:pr` (a later minor, ~0.3.x), carrying their tests, schemas, and invariants with them; plan-runner is then deprecated with a pointer, and the marketplace entry swaps over. Until that migration, plan-runner stays untouched at its own release cadence — ideas must prove itself before absorbing a working v1.10.0 plugin.
+
+**The removal decision is gated on evidence, not vibes:** phase 2 (uninstalling superpowers) happens only after the benchmark in section 13 shows ideas matching or beating brainstorming on spec quality and downstream success at materially lower cost. The critique research is encouraging — superpowers' maintainer concedes the cost problem ("tokens are expensive and Superpowers uses a ton of them"; v6 cut token spend 60%), independent measurement puts its full loop at ~3x bare Claude Code and *net-negative on simple tasks*, and the community verdict is "the methodology survives, the monolith doesn't" — but encouraging research is not a measurement of *this* plugin.
 
 ## 13. Measurement — the brainstorming benchmark
 
-"Better than superpowers" must be a number before it's a claim. The repo ships `bench/` (dev tooling, not plugin payload): a paired, blind, simulated-user benchmark comparing `/spec-interview:run` against `superpowers:brainstorming` head-to-head. The design follows the elicitation-eval literature (UserBench, ClarQ-LLM, tau-bench) and Anthropic's eval guidance.
+"Better than superpowers" must be a number before it's a claim. The repo ships `bench/` (dev tooling, not plugin payload): a paired, blind, simulated-user benchmark comparing `/ideas:interview` against `superpowers:brainstorming` head-to-head. The design follows the elicitation-eval literature (UserBench, ClarQ-LLM, tau-bench) and Anthropic's eval guidance.
 
 **Scenarios (N = 15–20, paired).** Each scenario is a hidden requirements document: a realistic brief (CLI feature, schema migration, UI component, auth flow, data pipeline — drawn from real work in this ecosystem's repos) with 8–12 planted facts tagged critical vs. nice-to-have, 3–4 seeded ambiguities, and 1–2 latent constraints revealed only if asked. Each scenario also carries a held-out acceptance checklist written from the hidden doc.
 
 **Simulated user.** A fixed, pinned model prompted with the persona plus the hidden doc, under a tight protocol: answer only what is asked; reveal a planted fact only when a question actually targets it; never volunteer critical constraints; never rescue a wrap-up that missed one. Grounding to the doc contains the known sim-user failure modes (over-compliance, drift). Results are reported as a *relative* comparison of elicitation skill between the two workflows — not a claim about human usability — and 2–3 scenarios are validated with a real human user.
 
-**Procedure.** scenario x {spec-interview, brainstorming} x 3 runs, headless, same orchestrator model+version pinned for both sides, transcripts and final specs captured.
+**Procedure.** scenario x {ideas, brainstorming} x 3 runs, headless, same orchestrator model+version pinned for both sides, transcripts and final specs captured.
 
 **Metrics (pre-declared, all reported — including where brainstorming wins):**
 - *Tier A — cost/burden (deterministic from transcripts):* output tokens per completed spec (primary cost metric — robust to prompt-cache noise), question count, turn count, simulated-user burden tokens, query discrepancy (questions asked vs. minimum needed).
@@ -209,7 +211,7 @@ The strategic goal is to retire superpowers from this ecosystem once spec-interv
 
 **Judge calibration gate.** Before trusting the judge: hand-label ~12 spec pairs; the judge must agree with the human labels >= 75% or the rubric gets fixed (never the scores).
 
-**Pre-declared success bar (the phase-2 gate from section 12):** spec-interview must match or beat brainstorming on tier D pass rate and the tier C composite, while spending at least 30% fewer output tokens per spec and imposing lower user burden. If it misses, the spec's claims are revised — never the numbers. (The plan-runner honesty invariants apply to our own benchmark first.)
+**Pre-declared success bar (the phase-2 gate from section 12):** ideas must match or beat brainstorming on tier D pass rate and the tier C composite, while spending at least 30% fewer output tokens per spec and imposing lower user burden. If it misses, the spec's claims are revised — never the numbers. (The plan-runner honesty invariants apply to our own benchmark first.)
 
 **Timing.** The harness lands in 0.1.x alongside the plugin; results are a prerequisite for the superpowers removal decision, not a post-hoc justification of it. Bench prerequisite: a pinned superpowers version installed for the comparison runs (recorded in the results alongside the pinned model IDs), so the numbers name exactly what they beat.
 
@@ -217,7 +219,7 @@ The strategic goal is to retire superpowers from this ecosystem once spec-interv
 
 This spec eats its own dog food — the criteria writing-plans must satisfy, in the notation section 7 mandates:
 
-1. WHEN `/spec-interview:run` is invoked with an idea in a repo containing no matching ledger, THE SKILL SHALL complete triage in exactly one AskUserQuestion call.
+1. WHEN `/ideas:interview` is invoked with an idea in a repo containing no matching ledger, THE SKILL SHALL complete triage in exactly one AskUserQuestion call.
 2. WHEN triage sets scope S, M, or L, THE SKILL SHALL ask no more than 1, 2, or 3 post-triage waves respectively, and SHALL make no more than 5 AskUserQuestion calls before the approach checkpoint.
 3. WHEN a wave answer is empty, skipped, or timed out, THE SKILL SHALL re-ask once in prose, and IF still unanswered SHALL record the item as `assumed` or `open` — never as `decided`.
 4. WHEN the spec is drafted, THE SKILL SHALL generate it from the ledger file and the template, and every `assumed` and `open` ledger row SHALL appear in the spec's Assumptions or Open questions section.
@@ -238,7 +240,7 @@ Findings from a three-agent research sweep (2026-07-08/09): interview-style elic
 
 ### A.1 Landscape: the settled convention
 
-Every mature tool converges on: small multiple-choice question batches -> hard gate before implementation -> durable Markdown spec -> separate execution stage. spec-interview keeps this convention and does not innovate on it.
+Every mature tool converges on: small multiple-choice question batches -> hard gate before implementation -> durable Markdown spec -> separate execution stage. ideas keeps this convention and does not innovate on it.
 
 - **superpowers `brainstorming`** (the reference implementation): 9-step gated flow, one question per message, multiple-choice preferred, unconditional hard gate, dated spec doc, handoff to `writing-plans`. https://github.com/obra/superpowers
 - **Harper Reed's "idea honing"** (the seed pattern): one-question-at-a-time prompt -> `spec.md` -> `prompt_plan.md` -> `todo.md`. https://harper.blog/2025/02/16/my-llm-codegen-workflow-atm/
@@ -265,7 +267,7 @@ Sources: Anthropic skill-authoring best practices (platform.claude.com), the "Eq
 | Fact | Number | Consequence in this design |
 |---|---|---|
 | Skill loading is 3-level: only name+description always resident; SKILL.md body loads on use and stays for the session | body budget < 500 lines official | SKILL.md capped harder, at 150 lines |
-| Skill-listing budget ~1% of context (~2K tokens, ~15–25 skills) before silent truncation; per-description cap 1024/1536 chars | 200–400 chars ≈ 50–100 tokens typical | One skill per plugin; description <= 350 chars, keyword-dense |
+| Skill-listing budget ~1% of context (~2K tokens, ~15–25 skills) before silent truncation; per-description cap 1024/1536 chars | 200–400 chars ≈ 50–100 tokens typical | One skill in v0.1.0, max three at end-state; descriptions <= 350 chars, keyword-dense |
 | Compaction re-attaches only the front of each used skill | first ~5K tokens/skill, ~25K combined | Load-bearing flow front-loaded in SKILL.md |
 | References nested two levels deep get partially read (`head -100`) | one level only | `references/` files linked directly from SKILL.md |
 | Prompt cache TTL 5 min (write 1.25x, read 0.10x); a slow one-question-per-turn interview re-writes full context each turn | worst case for interactive flows | Batched AskUserQuestion (up to 4/call) collapses round-trips |
@@ -278,7 +280,7 @@ The other reading of "interviewing plugin" is a crowded commercial space (Final 
 
 ### A.5 Positioning
 
-The elicitation-interview space has no polished, marketplace-distributed, token-conscious plugin. The field's open problems are calibration and honesty: sizing depth to scope, separating user decisions from model assumptions, resumable state, and artifact shape. spec-interview claims exactly those four; everything else follows the settled convention.
+The elicitation-interview space has no polished, marketplace-distributed, token-conscious plugin. The field's open problems are calibration and honesty: sizing depth to scope, separating user decisions from model assumptions, resumable state, and artifact shape. ideas claims exactly those four; everything else follows the settled convention.
 
 ### A.6 Round-2 research: superpowers critique, alternatives, and eval methodology (2026-07-09)
 
