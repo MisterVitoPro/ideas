@@ -148,3 +148,16 @@ test("question-craft: taxonomy and wave guidance", () => {
   assert.ok(c.includes("recommended default"), "defaults guidance");
   assert.ok(c.includes("later waves probe contradictions"), "descending-wave intent");
 });
+
+const AUDITOR = "agents/spec-auditor.md";
+
+test("spec-auditor: least privilege and binding audit rules", () => {
+  const { frontmatter, body } = fm(read(AUDITOR));
+  assert.match(frontmatter, /^name: spec-auditor$/m);
+  assert.match(frontmatter, /^tools: Read, Grep, Glob$/m);
+  assert.ok(body.includes("only inputs are the two file paths"), "isolation from conversation");
+  assert.ok(body.includes('"violations"') && body.includes('"clean"'), "JSON return contract");
+  assert.ok(body.includes("report every violation; do not soften findings"), "no softening");
+  assert.ok(body.includes("empty Assumptions section with assumed rows in the ledger is a violation"),
+    "empty-assumptions rule");
+});
