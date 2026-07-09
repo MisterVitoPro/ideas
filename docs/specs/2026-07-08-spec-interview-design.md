@@ -43,6 +43,7 @@ spec-interview/
     question-craft.md             wave-design guidance + ambiguity taxonomy (lazy-loaded)
     spec-template.md              output spec skeleton incl. mandatory Assumptions section
   tests/contract.test.js          pins load-bearing phrases in SKILL.md (node --test)
+  bench/                          brainstorming benchmark harness (section 13; dev tooling, not plugin payload)
   README.md  CHANGELOG.md  package.json  LICENSE
 ```
 
@@ -52,6 +53,15 @@ Token rules baked into the skill's own structure (from Anthropic's skill-authori
 - SKILL.md body <= 150 lines, load-bearing flow in the first screenful (compaction keeps only the front ~5K tokens of a skill).
 - References exactly one level deep, split by concern, read only when needed. `question-craft.md` is consulted when designing waves; `spec-template.md` only at drafting time.
 - No subagents anywhere in the interactive loop (4–7x token multiplier, and subagents cannot relay AskUserQuestion to the user). One deliberate exception: the post-draft ledger audit (section 5) is non-interactive, read-only, and runs exactly once — the isolation is the point, not a cost.
+
+Prose discipline (superpowers' measured bloat, #832: 69% of its skill lines were cuttable with no behavior loss):
+- No rationalization tables, red-flag lists, multi-page examples, or redundant negative restatements in SKILL.md.
+- Rules explain *why* rather than shouting all-caps MUST/NEVER — Anthropic's own authoring guidance flags rigid imperatives as making the model follow the letter and miss edge cases.
+- One short "Known gotchas" section (empty-answer bug, cache TTL, ledger hand-edits) — per Anthropic, the most valuable content of a mature skill.
+
+Description/trigger craft (Claude measurably under-triggers skills):
+- The description is deliberately "pushy," third person, keyword-rich — and carries an explicit **exclusion clause**: not for typos, renames, or one-liners; fire when the thing could reasonably be built two different ways.
+- Before release, the description is evaluated with ~20 should-trigger / should-not-trigger queries in messy realistic phrasing (Anthropic's `run_loop.py` method), iterated until precision and recall are both acceptable.
 
 ## 5. Interview flow
 
@@ -76,7 +86,7 @@ invoke -> resume check -> context scan -> triage batch -> waves (scope-sized)
 
 Descending counts are deliberate: early waves cover ground, later waves probe contradictions and blind spots. Hard cap: no more than 5 AskUserQuestion calls total before the approach checkpoint, ever.
 
-**Waves.** Each wave is one AskUserQuestion batch of 2–4 related multiple-choice questions (each with a recommended default), plus at most one open-ended prose question per wave reserved for the genuinely fuzzy heart of the idea. Every wave from the second onward includes a "Draft the spec now" escape option — choosing it ends questioning immediately and downgrades all unasked planned questions to `assumed` or `open`. After each wave the ledger file is updated; the conversation does not re-summarize answers.
+**Waves.** Each wave is one AskUserQuestion batch of 2–4 related multiple-choice questions (each with a recommended default), plus at most one open-ended prose question per wave reserved for the genuinely fuzzy heart of the idea. Question quality rule (baked into SKILL.md verbatim, from the best-performing community interview skills): never ask obvious questions or anything the context scan already answered — ask questions that reveal hidden assumptions, expose edge cases the user hasn't considered, and uncover trade-offs they'll need to make. Every wave from the second onward includes a "Draft the spec now" escape option — choosing it ends questioning immediately and downgrades all unasked planned questions to `assumed` or `open`. After each wave the ledger file is updated; the conversation does not re-summarize answers.
 
 **Scope resize.** Users are unreliable at self-assessing scope, so triage's S/M/L is provisional. If answers in any wave reveal the scope was miscalled (an "S" sprouting subsystems, an "L" collapsing to a config change), the model proposes resizing as the first question of the *next* wave's batch — it never spends an extra AskUserQuestion call on it, and the resize decision lands in the ledger like any other.
 
@@ -86,7 +96,7 @@ Descending counts are deliberate: early waves cover ground, later waves probe co
 
 **Draft.** The spec is generated from the ledger plus `spec-template.md` — not from conversational memory. Then a self-review pass (placeholder scan, internal consistency, scope check, ambiguity check) with inline fixes.
 
-**Spec review (gate 2).** The user is asked to review the written spec file. Changes loop back to the draft step. On approval the run is complete; the skill suggests — but does not invoke — follow-on tools.
+**Spec review (gate 2).** The user is asked to review the written spec file via one AskUserQuestion: Approve / Add more / Modify / Start over. The agent never self-declares completeness — only Approve ends the run. Changes loop back to the draft step (and re-audit). On approval the run is complete; the skill suggests — but does not invoke — follow-on tools.
 
 ## 6. Ledger format
 
@@ -120,6 +130,12 @@ Commit policy: the **spec is committed**; the **ledger is gitignored** (appended
 
 `spec-template.md` defines: Problem, Goals, Non-goals, Users/consumers, Requirements, Chosen approach (+ alternatives considered and why rejected), Data & interfaces, Edge cases & error handling, Acceptance criteria, **Assumptions (unconfirmed)**, **Open questions**. Sections scale to scope; S-scope specs may be under a page. The Assumptions and Open questions sections are structurally mandatory even when empty ("None").
 
+Two format rules imported from the strongest competing spec systems:
+- **Acceptance criteria use EARS notation** (the five Easy-Approach-to-Requirements-Syntax sentence patterns, e.g. "WHEN [condition] THE SYSTEM SHALL [behavior]") — each criterion is unambiguous and directly testable, which is also what makes the ledger audit's claim-tracing mechanical rather than judgmental.
+- **Brownfield specs use change deltas** (OpenSpec's ADDED / MODIFIED / REMOVED framing for requirements touching existing behavior) so the spec describes the *change*, not a re-imagined system — the failure mode where spec tools hallucinate new requirements onto existing code.
+
+The spec stays contracts-only: interfaces, file paths, acceptance criteria, constraints — never function bodies, test code, or shell commands. Over-specified plans that freeze implementation detail are superpowers' sharpest unresolved critique (#895); when execution learns something, a contract survives it, prescribed code doesn't.
+
 ## 8. Error handling
 
 - **Empty AskUserQuestion answers** (known plugin-skill bug, claude-code #29547): an empty or missing answer is never treated as consent to the recommended option. Re-ask once as plain numbered prose questions; if still unanswered, record as `assumed`.
@@ -127,12 +143,16 @@ Commit policy: the **spec is committed**; the **ledger is gitignored** (appended
 - **git absent in the target repo:** all git operations (committing the spec) are gated on git availability, plan-runner style. The ledger and spec are still written; committing is skipped with a note.
 - **No docs/ directory:** created on first write.
 - **Ledger hand-edited between sessions:** treated as authoritative — the file is the source of truth, by design.
+- **Conflicting user instructions (the silent-nullification trap):** a CLAUDE.md line like "always start coding immediately" silently defeats superpowers — users believe they installed discipline they don't have. If instructions conflict with the interview gate, the skill says so in one sentence and asks which wins, rather than silently standing down or silently overriding.
+- **Native Plan Mode:** compose, don't fight (superpowers' Plan Mode conflict was closed as not-planned). The skill's on-disk spec + review gate reproduces plan mode's entire value independent of the mode; if invoked inside Plan Mode, the interview and ledger writes are the plan-mode-compatible activity, and the spec write happens after plan approval.
 
 ## 9. Testing & verification
 
 - `tests/contract.test.js` (node --test) pins the load-bearing prose in SKILL.md, plan-runner style: the hard gate sentence; the 4-questions-per-batch cap; the 5-call pre-checkpoint cap; descending wave counts; the three ledger statuses and the never-promote rule; the empty-answer fallback; the mandatory Assumptions section; the "Draft now" escape; the ledger-audit step, its never-override rule, and the "unaudited" banner fallback; the scope-resize rule; the ledger gitignore policy; SKILL.md line count <= 150 and frontmatter description <= 350 chars.
 - `claude plugin validate .` must pass.
 - A fixture ledger in `test-fixtures/` with decided/assumed/open rows, used by a contract test asserting the template maps every ledger status to its required spec section.
+- Contract tests additionally pin: the no-obvious-questions rule, the EARS acceptance-criteria requirement, the change-delta rule for brownfield specs, the contracts-not-code rule, the exclusion clause in the frontmatter description, and the absence of all-caps MUST/NEVER/ALWAYS imperatives in the SKILL.md body.
+- Trigger eval before each release: ~20 should/should-not-trigger queries in realistic messy phrasing, run 3x each; the description iterates until held-out precision/recall are acceptable. Queries live in `test-fixtures/trigger-queries.md` so the eval is repeatable.
 
 ## 10. Versioning & release
 
@@ -163,7 +183,33 @@ The strategic goal is to retire superpowers from this ecosystem once spec-interv
 - *Phase 1 — coexistence (superpowers still installed):* superpowers' meta-skill mandates brainstorming for any "let's build X", so ambient invocation is unwinnable. spec-interview is honest about being command-first: `/spec-interview:run`. Its description claims the adjacent, non-colliding vocabulary — spec, requirements, elicitation, interview, resumable, token-lean — so "interview me about this idea" or "write a spec" reaches it even now.
 - *Phase 2 — takeover (superpowers removed):* the description alone carries ambient triggering: "Use when the user wants to build, design, plan, or spec a feature or project" plus the phase-1 keywords, within the <= 350-char budget. No always-injected meta-skill: the findings show that pattern costs every session to enforce ceremony users resent. If ambient trigger reliability proves insufficient in practice, a minimal SessionStart hint (one sentence, plan-runner's inlined-hook pattern) is the fallback — measured against its per-session token cost, not adopted by default.
 
-**What replacing superpowers does NOT require this plugin to do:** execution discipline (plan-runner), verification and bug-hunting (qa-swarm), and git workflow skills are already covered in this ecosystem. The one genuine gap left is `writing-plans` — and superpowers' own issue tracker (#512) shows its monolithic `plan.md` output is a ~45–60K-token liability when re-read during execution. The successor there is the deferred `--plan-runner` adapter above, emitting per-wave/per-task files shaped as `/plan-runner:run` input rather than one monolith. When that lands (target: 0.2.x), the superpowers dependency can be dropped entirely.
+**What replacing superpowers does NOT require this plugin to do:** execution discipline (plan-runner), verification and bug-hunting (qa-swarm), and git workflow skills are already covered in this ecosystem. The one genuine gap left is `writing-plans` — and superpowers' own issue tracker shows its two deepest unresolved critiques live exactly there: monolithic `plan.md` files re-read 3–4x for ~45–60K tokens (#512), and plans that embed full function bodies, test files, and shell commands which become *wrong* the moment execution learns something (#895). The successor is the deferred `--plan-runner` adapter above, emitting per-wave/per-task files (execution reads ~2.5K per task, not the whole monolith) that carry interface contracts and EARS acceptance criteria — never implementation code. When that lands (target: 0.2.x), the superpowers dependency can be dropped entirely.
+
+**The removal decision is gated on evidence, not vibes:** phase 2 (uninstalling superpowers) happens only after the benchmark in section 13 shows spec-interview matching or beating brainstorming on spec quality and downstream success at materially lower cost. The critique research is encouraging — superpowers' maintainer concedes the cost problem ("tokens are expensive and Superpowers uses a ton of them"; v6 cut token spend 60%), independent measurement puts its full loop at ~3x bare Claude Code and *net-negative on simple tasks*, and the community verdict is "the methodology survives, the monolith doesn't" — but encouraging research is not a measurement of *this* plugin.
+
+## 13. Measurement — the brainstorming benchmark
+
+"Better than superpowers" must be a number before it's a claim. The repo ships `bench/` (dev tooling, not plugin payload): a paired, blind, simulated-user benchmark comparing `/spec-interview:run` against `superpowers:brainstorming` head-to-head. The design follows the elicitation-eval literature (UserBench, ClarQ-LLM, tau-bench) and Anthropic's eval guidance.
+
+**Scenarios (N = 15–20, paired).** Each scenario is a hidden requirements document: a realistic brief (CLI feature, schema migration, UI component, auth flow, data pipeline — drawn from real work in this ecosystem's repos) with 8–12 planted facts tagged critical vs. nice-to-have, 3–4 seeded ambiguities, and 1–2 latent constraints revealed only if asked. Each scenario also carries a held-out acceptance checklist written from the hidden doc.
+
+**Simulated user.** A fixed, pinned model prompted with the persona plus the hidden doc, under a tight protocol: answer only what is asked; reveal a planted fact only when a question actually targets it; never volunteer critical constraints; never rescue a wrap-up that missed one. Grounding to the doc contains the known sim-user failure modes (over-compliance, drift). Results are reported as a *relative* comparison of elicitation skill between the two workflows — not a claim about human usability — and 2–3 scenarios are validated with a real human user.
+
+**Procedure.** scenario x {spec-interview, brainstorming} x 3 runs, headless, same orchestrator model+version pinned for both sides, transcripts and final specs captured.
+
+**Metrics (pre-declared, all reported — including where brainstorming wins):**
+- *Tier A — cost/burden (deterministic from transcripts):* output tokens per completed spec (primary cost metric — robust to prompt-cache noise), question count, turn count, simulated-user burden tokens, query discrepancy (questions asked vs. minimum needed).
+- *Tier B — elicitation vs. ground truth:* **Active Elicited %** (planted facts surfaced because the workflow asked — the headline interview-skill metric), information gain per question, critical-fact coverage (weighted), and assumption honesty: facts the spec silently assumed vs. explicitly flagged. Tier B is where the ledger design should show up or be shown up.
+- *Tier C — spec quality (LLM judge):* completeness, unambiguity, testability, consistency, assumption honesty; each scored 1–5 in a separate judge call with anchored rubric levels, sources masked and headers normalized, order swapped and averaged, judge at temperature 0 and from a different model family than the generators.
+- *Tier D — downstream outcome (subset of 6–8 scenarios):* the same fixed executor implements from each spec with no access to the hidden doc; the held-out acceptance suite decides. **Pass rate is the primary metric of the whole benchmark.**
+
+**Analysis.** Per-scenario means across the 3 runs, then paired statistics: t-test or Wilcoxon signed-rank for tiers A–C, McNemar/exact binomial for tier D wins; minimum detectable effect reported at the chosen N so "no difference" is an honest statement.
+
+**Judge calibration gate.** Before trusting the judge: hand-label ~12 spec pairs; the judge must agree with the human labels >= 75% or the rubric gets fixed (never the scores).
+
+**Pre-declared success bar (the phase-2 gate from section 12):** spec-interview must match or beat brainstorming on tier D pass rate and the tier C composite, while spending at least 30% fewer output tokens per spec and imposing lower user burden. If it misses, the spec's claims are revised — never the numbers. (The plan-runner honesty invariants apply to our own benchmark first.)
+
+**Timing.** The harness lands in 0.1.x alongside the plugin; results are a prerequisite for the superpowers removal decision, not a post-hoc justification of it.
 
 ---
 
@@ -214,3 +260,13 @@ The other reading of "interviewing plugin" is a crowded commercial space (Final 
 ### A.5 Positioning
 
 The elicitation-interview space has no polished, marketplace-distributed, token-conscious plugin. The field's open problems are calibration and honesty: sizing depth to scope, separating user decisions from model assumptions, resumable state, and artifact shape. spec-interview claims exactly those four; everything else follows the settled convention.
+
+### A.6 Round-2 research: superpowers critique, alternatives, and eval methodology (2026-07-09)
+
+A second three-agent sweep informing sections 4, 5, 7, 8, 12, and 13.
+
+**Superpowers criticism catalog.** The #1 complaint is token cost, conceded by the maintainer (v6 blog: "tokens are expensive and Superpowers uses a ton of them"; v6 cut runtime 50%/tokens 60%). Measured: ~22K tokens of skills preloaded at startup, 15.7x over true progressive disclosure (#190); 69% of skill prose cuttable with no behavior loss — rationalization tables, red-flag lists, long examples (#832); monolithic plans re-read for 45–60K tokens (#512, unanswered); plans embedding full implementation code (#895, unanswered); native Plan Mode conflict closed as not-planned (#1667); CLAUDE.md lines silently nullifying the framework; the forced meta-skill experienced as hijacking — a bootstrap the maintainer himself was "low-key excited" to abandon. Defenders' must-preserve list: the intent-before-code gate, scope-check-then-decompose, adversarial review, deliberate one-at-a-time questioning. Verdict quote: "The methodology survives. The monolith doesn't." https://github.com/obra/superpowers/issues/190 · /832 · /512 · /895 · /1667 · https://blog.fsck.com/2026/06/15/Superpowers-6/
+
+**What works instead.** Instruction-following budget is real (~150–200 instructions; non-linear degradation; adherence visibly drops past ~150 lines) — the empirical basis for this design's prose discipline. Enforcement belongs in tooling (hooks/linters/tests), not prose. The highest signal-to-overhead technique in the field is exactly interview -> spec-on-disk + review gate (reproducing native plan mode's entire value, per Ronacher's teardown of what plan mode actually is). Transferable format ideas adopted in section 7: EARS acceptance criteria (Kiro) and change deltas (OpenSpec). Trigger craft: pushy descriptions with exclusion clauses, evaluated with should/should-not query suites (Anthropic skill-creator method). Head-to-head economics: full superpowers SDLC ~3x bare Claude Code tokens, net-negative on simple tasks; AI-Workflow-Benchmark's "Workflow Lift" shows structure helps hard tasks (+12 bug diagnosis) while hurting cost discipline — a workflow earns its keep only if it caps its own overhead. https://lucumr.pocoo.org/2025/12/17/what-is-plan-mode/ · https://nizar.se/lean-claude-code-for-production/ · https://chenguangliang.com/en/posts/claude-code-workflow-plugins-comparison/ · https://github.com/xmpuspus/ai-workflow-benchmark · https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md
+
+**Eval methodology.** Section 13's design descends from: UserBench (hidden-preference simulated users; Active Elicited %; top models surface <30% of preferences by asking — real headroom), ClarQ-LLM (success rate + query discrepancy), tau-bench (simulated-user loop architecture), judge-bias literature (position/verbosity/self-preference biases and their mitigations: order-swap-and-average, length instructions, masked sources, cross-family judges), Anthropic's eval guidance (20–50 tasks suffice at hobbyist scale; paired designs; calibrate judge to >= 75% human agreement), and the "Lost in Simulation" caveat that sim-user results are relative, not absolute. https://arxiv.org/html/2507.22034v1 · https://arxiv.org/abs/2409.06097 · https://arxiv.org/pdf/2506.07982 · https://arxiv.org/pdf/2601.17087 · https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents · https://arxiv.org/html/2406.07791v5
