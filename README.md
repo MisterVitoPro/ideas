@@ -16,7 +16,9 @@ The interview sizes itself to the task (a triage batch picks S/M/L depth), asks 
 multiple-choice questions with recommended defaults, and records every answer in an on-disk
 ledger with three statuses: `decided` (you chose), `assumed` (a labeled default you did not
 confirm), and `open`. The spec is drafted from the ledger - not from conversational memory - so
-the run survives /clear and resumes from the file alone.
+the run survives /clear and resumes from the file alone. An elicitation floor sweeps the ambiguity
+taxonomy before drafting - the interview spends its remaining question budget on unprobed critical
+ground rather than closing early.
 
 Before you review the draft, two read-only agents run in parallel:
 - `ideas:spec-auditor` (binding): every claim in the spec must trace to a decided ledger row or

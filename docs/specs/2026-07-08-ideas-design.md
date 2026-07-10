@@ -166,7 +166,7 @@ SemVer from 0.1.0. Same four-place bump protocol as plan-runner (plugin.json, co
 
 - Split-model economics: post-interview synthesis on a cheaper model (interview stays in the main loop; only non-interactive drafting can be delegated). Pattern proven by OpenAI Deep Research's cheap-clarifier/expensive-executor split; unclaimed in the Claude Code ecosystem.
 - A `--plan-runner` output adapter emitting the spec pre-shaped for `/plan-runner:run`.
-- Coverage-taxonomy audit mode: a closing check that walks `question-craft.md`'s ambiguity taxonomy and lists uncovered categories as `open` entries (Kiro-style machine-checked coverage, without spec-kit's rigidity).
+- Coverage-taxonomy audit mode: a closing check that walks `question-craft.md`'s ambiguity taxonomy and lists uncovered categories as `open` entries (Kiro-style machine-checked coverage, without spec-kit's rigidity). A lite version - the elicitation floor in the Waves flow - shipped in 0.2.2 after the benchmark's first live run exposed under-elicitation (ideas-bench: docs/smoke-2026-07-10-s01.md).
 
 ## 12. Superpowers replacement path
 
