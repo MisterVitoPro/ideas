@@ -12,6 +12,9 @@ implementation tools from this skill - suggest next tools without invoking them.
 Flow: resume check -> context scan -> triage -> waves -> approach checkpoint -> draft
 -> audit + critic (parallel) -> review gate.
 
+With `--plan-runner <spec-path>`, skip the interview and run the plan adapter in
+`references/plan-adapter.md` against an existing approved spec - the spec alone suffices.
+
 ## Resume check
 If a `docs/specs/*-<slug>.ledger.md` exists with status other than `complete`, offer: resume or
 start over. On resume, read interview state only from the ledger, not from any prior transcript.
@@ -83,13 +86,14 @@ Dispatch both registered agents at once, passing only the ledger and draft paths
 - `ideas:spec-critic` - advisory. Returns the single biggest miss plus 2-3 mitigations.
 
 ## Review gate
-One AskUserQuestion: Approve / Add more / Modify / Start over - accompanied by the review receipt
+One AskUserQuestion: Approve / Approve + generate plan / Add more / Modify / Start over - accompanied by the review receipt
 ("N decided, N assumed, N open; audit clean|unaudited") and the critic's callout presented verbatim
 (if the critic failed, state "no critique available"). Record the critic disposition in the ledger:
-chosen mitigation -> `decided`; deferred -> `open`; dismissed -> noted. Only Approve ends the run;
+chosen mitigation -> `decided`; deferred -> `open`; dismissed -> noted. Only the two Approve options end the run;
 any other choice loops back to Draft and re-audit. On approval: commit the spec and ADRs (git-gated -
 when git is absent, write files and note that committing was skipped), set the ledger status to `complete`,
-and suggest next tools without invoking them (e.g. /plan-runner:run).
+and suggest next tools without invoking them (e.g. /plan-runner:run). "Approve + generate plan"
+completes approval identically, then runs the plan adapter (`references/plan-adapter.md`) in the same session.
 
 ## Known gotchas
 - AskUserQuestion can return empty answers inside plugin skills; treat empty as unanswered, not

@@ -18,7 +18,7 @@ module.exports = { read, fm };
 test("plugin manifest: name, version, author", () => {
   const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
   assert.strictEqual(plugin.name, "ideas");
-  assert.strictEqual(plugin.version, "0.1.0");
+  assert.strictEqual(plugin.version, "0.2.0");
   assert.strictEqual(plugin.author.name, "MisterVitoPro");
 });
 
@@ -102,10 +102,10 @@ test("skill: audit and critic contracts", () => {
 
 test("skill: review gate with receipt and disposition", () => {
   const { body } = fm(read(SKILL));
-  assert.ok(body.includes("Approve / Add more / Modify / Start over"), "gate options");
+  assert.ok(body.includes("Approve / Approve + generate plan / Add more / Modify / Start over"), "gate options");
   assert.ok(body.includes("review receipt"), "receipt");
   assert.ok(body.includes("presented verbatim"), "critic callout verbatim");
-  assert.ok(body.includes("Only Approve ends the run"), "no self-declared completeness");
+  assert.ok(body.includes("Only the two Approve options end the run"), "no self-declared completeness");
 });
 
 test("skill: context scan, ADRs, conflicts, git gating", () => {
@@ -187,10 +187,39 @@ test("trigger queries: at least 20, both polarities, messy phrasing", () => {
   assert.ok(shouldNot.length >= 8, "at least 8 should-not-trigger queries, got " + shouldNot.length);
 });
 
-test("docs + version reflect the v0.1.0 interview feature", () => {
+test("docs + version reflect the v0.2.0 adapter feature", () => {
   const readme = read("README.md");
   assert.ok(readme.includes("/ideas:interview"), "README documents the command");
   assert.ok(readme.includes("decided"), "README explains ledger statuses");
   assert.ok(readme.includes("spec-auditor") && readme.includes("spec-critic"), "README names both agents");
   assert.ok(readme.includes("MisterVitoPro"), "author credit");
+  assert.ok(readme.includes("--plan-runner"), "README documents the adapter flag");
+  assert.ok(readme.includes("Approve + generate plan"), "README documents the gate option");
+});
+
+const ADAPTER = "skills/interview/references/plan-adapter.md";
+
+test("plan adapter: refusals, honesty carry, and task shape", () => {
+  const a = read(ADAPTER);
+  assert.ok(a.includes("no Acceptance criteria section"), "missing-criteria refusal trigger");
+  assert.ok(a.includes("never invents criteria"), "no fabrication");
+  assert.ok(a.includes("Confirm-or-carry"), "confirm-or-carry step");
+  assert.ok(a.includes("Flagged constraints (unconfirmed)"), "carried items header");
+  assert.ok(a.includes("flat ordered task list"), "no pre-waving");
+  assert.ok(a.includes("wave grouping belongs to plan-runner's analyzer"), "analyzer owns waves");
+  assert.ok(a.includes("full text of the EARS criteria"), "full criterion text rule");
+  assert.ok(a.includes("never a bare reference number"), "no numeric references");
+  assert.ok(a.includes("reference-only pattern"), "self-check trigger");
+  assert.ok(a.includes("refuse to write the plan and name the offending task"), "self-check refusal");
+  assert.ok(a.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "plan path convention");
+  assert.ok(a.includes("never function bodies, test code, or shell commands"), "contracts-not-code for plans");
+  assert.ok(a.includes("the spec alone suffices"), "standalone re-entry input rule");
+});
+
+test("skill: plan adapter wiring", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("--plan-runner"), "standalone flag");
+  assert.ok(body.includes("references/plan-adapter.md"), "lazy pointer");
+  assert.ok(body.includes("completes approval identically, then runs the plan adapter"),
+    "approve+generate semantics");
 });
