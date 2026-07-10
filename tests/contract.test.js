@@ -102,7 +102,7 @@ test("skill: audit and critic contracts", () => {
 
 test("skill: review gate with receipt and disposition", () => {
   const { body } = fm(read(SKILL));
-  assert.ok(body.includes("Approve / Add more / Modify / Start over"), "gate options");
+  assert.ok(body.includes("Approve / Approve + generate plan / Add more / Modify / Start over"), "gate options");
   assert.ok(body.includes("review receipt"), "receipt");
   assert.ok(body.includes("presented verbatim"), "critic callout verbatim");
   assert.ok(body.includes("Only Approve ends the run"), "no self-declared completeness");
@@ -212,4 +212,12 @@ test("plan adapter: refusals, honesty carry, and task shape", () => {
   assert.ok(a.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "plan path convention");
   assert.ok(a.includes("never function bodies, test code, or shell commands"), "contracts-not-code for plans");
   assert.ok(a.includes("the spec alone suffices"), "standalone re-entry input rule");
+});
+
+test("skill: plan adapter wiring", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("--plan-runner"), "standalone flag");
+  assert.ok(body.includes("references/plan-adapter.md"), "lazy pointer");
+  assert.ok(body.includes("completes approval identically, then runs the plan adapter"),
+    "approve+generate semantics");
 });
