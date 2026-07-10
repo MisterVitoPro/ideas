@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0] - 2026-07-09
+
+### Added
+- Plan adapter (spec: docs/specs/2026-07-09-plan-runner-adapter.md, ADRs 0001-0002): "Approve + generate plan" review-gate option and `--plan-runner <spec-path>` standalone re-entry. Emits a single plan-runner-ready plan file (flat task list, full EARS criterion text - never bare reference numbers, confirm-or-carry header for unresolved assumptions), written to docs/plans/ and committed git-gated. Refuses specs without acceptance criteria and plans with reference-only criteria.
+
 ## [0.1.0] - 2026-07-09
 
 ### Added

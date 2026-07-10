@@ -28,6 +28,11 @@ Output: a committed spec (`docs/specs/YYYY-MM-DD-<slug>.md`) with EARS acceptanc
 change deltas for brownfield work, mandatory Assumptions and Open questions sections, and
 optionally 1-2 MADR-lite ADRs in `docs/adr/`. The ledger itself is gitignored.
 
+After approval, "Approve + generate plan" (or `/ideas:interview --plan-runner <spec-path>` later)
+emits a plan-runner-ready plan: a flat task list where every task carries owned files, interfaces,
+and the full text of its EARS criteria - contracts only, plan-runner's TDD agents write the code.
+Unresolved assumptions carry into the plan header as flagged constraints, never dropped.
+
 Not for typos, renames, or one-line fixes - invoke it when the thing could reasonably be built
 two different ways.
 
@@ -39,7 +44,7 @@ two different ways.
 
 ## Roadmap
 
-- 0.2.x: plan-runner output adapter (per-task plan files, contracts not code).
+- 0.2.0 (shipped): plan-runner output adapter - single structured plan file, contracts not code.
 - 0.3.x: plan-runner's run/pr migrate in as /ideas:execute-plan and /ideas:pr.
 - Benchmark harness (bench/) comparing against superpowers:brainstorming; see the design spec.
 

@@ -18,7 +18,7 @@ module.exports = { read, fm };
 test("plugin manifest: name, version, author", () => {
   const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
   assert.strictEqual(plugin.name, "ideas");
-  assert.strictEqual(plugin.version, "0.1.0");
+  assert.strictEqual(plugin.version, "0.2.0");
   assert.strictEqual(plugin.author.name, "MisterVitoPro");
 });
 
@@ -187,12 +187,14 @@ test("trigger queries: at least 20, both polarities, messy phrasing", () => {
   assert.ok(shouldNot.length >= 8, "at least 8 should-not-trigger queries, got " + shouldNot.length);
 });
 
-test("docs + version reflect the v0.1.0 interview feature", () => {
+test("docs + version reflect the v0.2.0 adapter feature", () => {
   const readme = read("README.md");
   assert.ok(readme.includes("/ideas:interview"), "README documents the command");
   assert.ok(readme.includes("decided"), "README explains ledger statuses");
   assert.ok(readme.includes("spec-auditor") && readme.includes("spec-critic"), "README names both agents");
   assert.ok(readme.includes("MisterVitoPro"), "author credit");
+  assert.ok(readme.includes("--plan-runner"), "README documents the adapter flag");
+  assert.ok(readme.includes("Approve + generate plan"), "README documents the gate option");
 });
 
 const ADAPTER = "skills/interview/references/plan-adapter.md";
