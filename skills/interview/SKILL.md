@@ -89,7 +89,7 @@ Dispatch both registered agents at once, passing only the ledger and draft paths
 One AskUserQuestion: Approve / Approve + generate plan / Add more / Modify / Start over - accompanied by the review receipt
 ("N decided, N assumed, N open; audit clean|unaudited") and the critic's callout presented verbatim
 (if the critic failed, state "no critique available"). Record the critic disposition in the ledger:
-chosen mitigation -> `decided`; deferred -> `open`; dismissed -> noted. Only Approve ends the run;
+chosen mitigation -> `decided`; deferred -> `open`; dismissed -> noted. Only the two Approve options end the run;
 any other choice loops back to Draft and re-audit. On approval: commit the spec and ADRs (git-gated -
 when git is absent, write files and note that committing was skipped), set the ledger status to `complete`,
 and suggest next tools without invoking them (e.g. /plan-runner:run). "Approve + generate plan"

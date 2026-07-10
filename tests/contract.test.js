@@ -105,7 +105,7 @@ test("skill: review gate with receipt and disposition", () => {
   assert.ok(body.includes("Approve / Approve + generate plan / Add more / Modify / Start over"), "gate options");
   assert.ok(body.includes("review receipt"), "receipt");
   assert.ok(body.includes("presented verbatim"), "critic callout verbatim");
-  assert.ok(body.includes("Only Approve ends the run"), "no self-declared completeness");
+  assert.ok(body.includes("Only the two Approve options end the run"), "no self-declared completeness");
 });
 
 test("skill: context scan, ADRs, conflicts, git gating", () => {
