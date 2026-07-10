@@ -46,10 +46,10 @@ two different ways.
 
 - 0.2.0 (shipped): plan-runner output adapter - single structured plan file, contracts not code.
 - 0.3.x: plan-runner's run/pr migrate in as /ideas:execute-plan and /ideas:pr.
-- Benchmark harness (bench/, dev tooling, not plugin payload): shipped as a 6-scenario pilot -
-  paired, blind, simulated-user comparison against superpowers:brainstorming with a CLI
-  (`node bench/run.js run|score|report`), paired statistics, and a pre-declared success bar.
-  See `bench/README.md`; results are a prerequisite for the superpowers removal decision.
+- Benchmark harness: lives in its own repo, [ideas-bench](https://github.com/MisterVitoPro/ideas-bench),
+  so this plugin ships lean. Paired, blind, simulated-user comparison against
+  superpowers:brainstorming (6-scenario pilot, paired statistics, pre-declared success bar);
+  its results are a prerequisite for the superpowers removal decision.
 
 ## Development
 

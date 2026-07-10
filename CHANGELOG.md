@@ -1,18 +1,13 @@
 # Changelog
 
-## Unreleased (dev)
+## [0.2.1] - 2026-07-10
 
-### Added
-- `bench/` (dev tooling, not plugin payload -- no version bump): the paired, blind,
-  simulated-user benchmark harness comparing `/ideas:interview` against
-  `superpowers:brainstorming` (design spec section 13). Scenario corpus (6 pilot
-  scenarios), simulated-user + conversation driver, tier A/B/C metrics (deterministic
-  cost/burden, judge-scored elicitation vs. ground truth, masked order-swapped spec
-  quality with anchored 1-5 rubrics), paired statistics (exact Wilcoxon signed-rank,
-  exact binomial), and an orchestrator CLI (`node bench/run.js run|score|report`) with a
-  paired-table report generator, a pre-declared PASS/FAIL/INSUFFICIENT-DATA success bar,
-  and a mandatory Caveats section. Tier D (downstream execution) is a documented manual
-  procedure, not automated. See `bench/README.md`.
+### Changed
+- Extracted the benchmark harness to its own repo, [ideas-bench](https://github.com/MisterVitoPro/ideas-bench)
+  (full history preserved), so the installed plugin ships lean. The harness (6-pilot-scenario
+  paired simulated-user benchmark vs `superpowers:brainstorming`, tier A/B/C metrics, exact
+  paired statistics, pre-declared success bar) was developed in this repo between v0.2.0 and
+  this release; no plugin behavior changed.
 
 ## [0.2.0] - 2026-07-09
 
