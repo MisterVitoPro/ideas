@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased (dev)
+
+### Added
+- `bench/` (dev tooling, not plugin payload -- no version bump): the paired, blind,
+  simulated-user benchmark harness comparing `/ideas:interview` against
+  `superpowers:brainstorming` (design spec section 13). Scenario corpus (6 pilot
+  scenarios), simulated-user + conversation driver, tier A/B/C metrics (deterministic
+  cost/burden, judge-scored elicitation vs. ground truth, masked order-swapped spec
+  quality with anchored 1-5 rubrics), paired statistics (exact Wilcoxon signed-rank,
+  exact binomial), and an orchestrator CLI (`node bench/run.js run|score|report`) with a
+  paired-table report generator, a pre-declared PASS/FAIL/INSUFFICIENT-DATA success bar,
+  and a mandatory Caveats section. Tier D (downstream execution) is a documented manual
+  procedure, not automated. See `bench/README.md`.
+
 ## [0.2.0] - 2026-07-09
 
 ### Added
