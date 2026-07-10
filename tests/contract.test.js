@@ -18,7 +18,7 @@ module.exports = { read, fm };
 test("plugin manifest: name, version, author", () => {
   const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
   assert.strictEqual(plugin.name, "ideas");
-  assert.strictEqual(plugin.version, "0.2.1");
+  assert.strictEqual(plugin.version, "0.2.2");
   assert.strictEqual(plugin.author.name, "MisterVitoPro");
 });
 
@@ -214,6 +214,16 @@ test("plan adapter: refusals, honesty carry, and task shape", () => {
   assert.ok(a.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "plan path convention");
   assert.ok(a.includes("never function bodies, test code, or shell commands"), "contracts-not-code for plans");
   assert.ok(a.includes("the spec alone suffices"), "standalone re-entry input rule");
+});
+
+test("skill: elicitation floor", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("## Elicitation floor"), "elicitation floor heading");
+  assert.ok(body.includes("flagging a gap is not a substitute for asking about it"),
+    "gap flagging is not asking");
+  assert.ok(body.includes("up to two extra gap waves"), "extra gap wave bound");
+  assert.ok(body.includes("still within the 5-call cap"), "gap waves respect the call cap");
+  assert.ok(body.includes("names the categories left unprobed"), "receipt names unprobed categories");
 });
 
 test("skill: plan adapter wiring", () => {

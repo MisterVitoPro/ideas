@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.2] - 2026-07-10
+
+### Fixed
+- Elicitation floor: before the approach checkpoint the interview sweeps the question-craft ambiguity taxonomy against the ledger and spends up to two extra gap waves (within the 5-call cap) on unprobed categories with plausible bearing on the idea. Added after the benchmark's first live run (ideas-bench docs/smoke-2026-07-10-s01.md) showed an interview closing with most critical facts unasked - flagged as assumptions instead of asked. Draft-now/cap-exhausted paths now name the categories left unprobed in the review receipt.
+
 ## [0.2.1] - 2026-07-10
 
 ### Changed

@@ -51,6 +51,14 @@ option; choosing it ends questioning and downgrades unasked items to `assumed` o
 Scope resize: if answers show the scope was miscalled, propose resizing as the first question of the next wave - it costs no extra call.
 After each wave update the ledger file; do not re-summarize answers in conversation (the file is the state).
 
+## Elicitation floor
+Before the approach checkpoint, sweep the ambiguity taxonomy in `references/question-craft.md`
+against the ledger. A category with no decided row and plausible bearing on the idea is an
+elicitation gap - flagging a gap is not a substitute for asking about it. Spend up to two extra gap waves
+on the sharpest gaps (batched as usual, still within the 5-call cap); only when the
+cap is exhausted or the user chose "Draft the spec now" may remaining gaps become `assumed` or
+`open` - and then the review receipt names the categories left unprobed.
+
 ## Ledger (the source of truth)
 Path: `docs/specs/YYYY-MM-DD-<slug>.ledger.md`, beside the future spec. Fixed headings:
 
