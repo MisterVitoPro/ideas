@@ -194,3 +194,22 @@ test("docs + version reflect the v0.1.0 interview feature", () => {
   assert.ok(readme.includes("spec-auditor") && readme.includes("spec-critic"), "README names both agents");
   assert.ok(readme.includes("MisterVitoPro"), "author credit");
 });
+
+const ADAPTER = "skills/interview/references/plan-adapter.md";
+
+test("plan adapter: refusals, honesty carry, and task shape", () => {
+  const a = read(ADAPTER);
+  assert.ok(a.includes("no Acceptance criteria section"), "missing-criteria refusal trigger");
+  assert.ok(a.includes("never invents criteria"), "no fabrication");
+  assert.ok(a.includes("Confirm-or-carry"), "confirm-or-carry step");
+  assert.ok(a.includes("Flagged constraints (unconfirmed)"), "carried items header");
+  assert.ok(a.includes("flat ordered task list"), "no pre-waving");
+  assert.ok(a.includes("wave grouping belongs to plan-runner's analyzer"), "analyzer owns waves");
+  assert.ok(a.includes("full text of the EARS criteria"), "full criterion text rule");
+  assert.ok(a.includes("never a bare reference number"), "no numeric references");
+  assert.ok(a.includes("reference-only pattern"), "self-check trigger");
+  assert.ok(a.includes("refuse to write the plan and name the offending task"), "self-check refusal");
+  assert.ok(a.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "plan path convention");
+  assert.ok(a.includes("never function bodies, test code, or shell commands"), "contracts-not-code for plans");
+  assert.ok(a.includes("the spec alone suffices"), "standalone re-entry input rule");
+});
