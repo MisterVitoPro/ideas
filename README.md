@@ -3,6 +3,11 @@
 A Claude Code plugin that turns a raw idea into an audited design spec through a token-conscious
 interview. By MisterVitoPro.
 
+## Install
+
+    claude plugin marketplace add MisterVitoPro/qa-claude-market
+    claude plugin install ideas@mistervitopro-plugin-marketplace
+
 ## Command
 
 `/ideas:interview [idea]`
