@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.3] - 2026-07-10
+
+### Fixed
+- Token-cost discipline, from benchmark pilot measurements (ideas-bench docs/pilot-2026-07-10-report.md): ledger updates are now targeted appends anchored on section headings (wholesale rewrites every wave were the dominant per-session token cost); wave prose stays lean; the review gate presents the receipt and critic callout without echoing the spec body. No behavioral change to the interview's questions, honesty rules, or artifacts.
+
 ## [0.2.2] - 2026-07-10
 
 ### Fixed
