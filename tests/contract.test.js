@@ -18,7 +18,7 @@ module.exports = { read, fm };
 test("plugin manifest: name, version, author", () => {
   const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
   assert.strictEqual(plugin.name, "ideas");
-  assert.strictEqual(plugin.version, "0.2.2");
+  assert.strictEqual(plugin.version, "0.2.3");
   assert.strictEqual(plugin.author.name, "MisterVitoPro");
 });
 
@@ -232,4 +232,15 @@ test("skill: plan adapter wiring", () => {
   assert.ok(body.includes("references/plan-adapter.md"), "lazy pointer");
   assert.ok(body.includes("completes approval identically, then runs the plan adapter"),
     "approve+generate semantics");
+});
+
+test("skill: token-cost discipline", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("append the new rows to the ledger with a targeted edit"),
+    "ledger updates are targeted appends");
+  assert.ok(body.includes("whole-file rewrites were measured as the interview's dominant token cost"),
+    "measured cost justification");
+  assert.ok(body.includes("keep wave prose lean"), "lean wave prose");
+  assert.ok(body.includes("re-summarize answers in conversation"), "existing pin still holds");
+  assert.ok(body.includes("not the spec body"), "review gate does not echo spec body");
 });

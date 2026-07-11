@@ -49,7 +49,10 @@ that reveal hidden assumptions, expose edge cases the user has not considered, a
 trade-offs they will need to make. From wave 2 onward include a "Draft the spec now" escape
 option; choosing it ends questioning and downgrades unasked items to `assumed` or `open`.
 Scope resize: if answers show the scope was miscalled, propose resizing as the first question of the next wave - it costs no extra call.
-After each wave update the ledger file; do not re-summarize answers in conversation (the file is the state).
+After each wave, append the new rows to the ledger with a targeted edit anchored on the section
+heading - whole-file rewrites were measured as the interview's dominant token cost. Do not
+re-summarize answers in conversation (the file is the state), and keep wave prose lean: the
+questions themselves, one line of context each.
 
 ## Elicitation floor
 Before the approach checkpoint, sweep the ambiguity taxonomy in `references/question-craft.md`
@@ -102,6 +105,8 @@ any other choice loops back to Draft and re-audit. On approval: commit the spec 
 when git is absent, write files and note that committing was skipped), set the ledger status to `complete`,
 and suggest next tools without invoking them (e.g. /plan-runner:run). "Approve + generate plan"
 completes approval identically, then runs the plan adapter (`references/plan-adapter.md`) in the same session.
+Present the receipt and the callout, not the spec body - the file is the deliverable, and echoing
+it in conversation doubles its cost.
 
 ## Known gotchas
 - AskUserQuestion can return empty answers inside plugin skills; treat empty as unanswered, not
