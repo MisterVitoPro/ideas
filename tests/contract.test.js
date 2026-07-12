@@ -307,23 +307,16 @@ test("ideas:tickets skill: preflight refusals, gh-only, labels, sub-issue linkin
     "sub-issue fallback announced");
 });
 
-const ADAPTER = "skills/interview/references/plan-adapter.md";
-
-test("plan adapter: refusals, honesty carry, and task shape", () => {
-  const a = read(ADAPTER);
-  assert.ok(a.includes("no Acceptance criteria section"), "missing-criteria refusal trigger");
-  assert.ok(a.includes("never invents criteria"), "no fabrication");
-  assert.ok(a.includes("Confirm-or-carry"), "confirm-or-carry step");
-  assert.ok(a.includes("Flagged constraints (unconfirmed)"), "carried items header");
-  assert.ok(a.includes("flat ordered task list"), "no pre-waving");
-  assert.ok(a.includes("wave grouping belongs to plan-runner's analyzer"), "analyzer owns waves");
-  assert.ok(a.includes("full text of the EARS criteria"), "full criterion text rule");
-  assert.ok(a.includes("never a bare reference number"), "no numeric references");
-  assert.ok(a.includes("reference-only pattern"), "self-check trigger");
-  assert.ok(a.includes("refuse to write the plan and name the offending task"), "self-check refusal");
-  assert.ok(a.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "plan path convention");
-  assert.ok(a.includes("never function bodies, test code, or shell commands"), "contracts-not-code for plans");
-  assert.ok(a.includes("the spec alone suffices"), "standalone re-entry input rule");
+test("ideas:plan skill: refusals, honesty carry, and task shape", () => {
+  const p = read(PLAN_SKILL);
+  assert.ok(p.includes("no Acceptance criteria section"), "missing-criteria refusal trigger");
+  assert.ok(p.includes("never invent criteria"), "no fabrication");
+  assert.ok(p.includes("Flagged constraints (unconfirmed)"), "carried items header");
+  assert.ok(p.includes("flat ordered task list"), "no pre-waving");
+  assert.ok(p.includes("<slug>-t<NN>"), "task ID scheme");
+  assert.ok(p.includes("never renumbered"), "task ID stability");
+  assert.ok(p.includes("reference-only pattern"), "self-check trigger");
+  assert.ok(p.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "plan path convention");
 });
 
 test("skill: elicitation floor v2 - breadth gate", () => {
@@ -357,12 +350,10 @@ test("skill: assumption collision rule", () => {
   assert.ok(body.includes("never self-adjudicated"), "hard-constraint collisions go back to the user");
 });
 
-test("skill: plan adapter wiring", () => {
+test("skill: review gate routes to /ideas:plan, drops --plan-runner", () => {
   const { body } = fm(read(SKILL));
-  assert.ok(body.includes("--plan-runner"), "standalone flag");
-  assert.ok(body.includes("references/plan-adapter.md"), "lazy pointer");
-  assert.ok(body.includes("completes approval identically, then runs the plan adapter"),
-    "approve+generate semantics");
+  assert.ok(!body.includes("--plan-runner"), "standalone flag no longer accepted");
+  assert.ok(body.includes("runs `/ideas:plan` in the same session"), "approve+generate routes to /ideas:plan");
 });
 
 test("skill: token-cost discipline", () => {
