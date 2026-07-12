@@ -235,6 +235,17 @@ This spec eats its own dog food — the criteria writing-plans must satisfy, in 
 12. WHEN the draft is complete, THE SKILL SHALL dispatch the biggest-miss critic alongside the audit, SHALL present its single callout and mitigations verbatim at gate 2, and SHALL record the user's disposition in the ledger; IF the critic cannot run THE SKILL SHALL state "no critique available" at gate 2.
 13. THE PLUGIN SHALL pass `node --test tests/contract.test.js` and `claude plugin validate .`, with SKILL.md <= 150 lines and its description <= 350 characters including an exclusion clause.
 
+## 15. Post-benchmark amendments (0.3.0)
+
+ideas-bench's second pilot (docs/pilot2-2026-07-11-report.md) and its tier-D failure analysis: 15 of 22 build failures traced to facts never elicited or self-adjudicated by the spec instead of the user; misses concentrated in Lifecycle (67%), Non-functionals (63%), and Interfaces (48%). Six amendments respond:
+
+- **Elicitation floor v2**: category-coverage gate before the approach checkpoint - every taxonomy category needs a decided row or explicit waiver; gap waves sweep breadth before depth; the receipt always names unprobed categories.
+- **Existing-system baseline**: brownfield interviews establish language/runtime, current behavior, integrated services, and existing data from the repo before drafting.
+- **Round-trip rule**: every concrete requirement in the user's idea lands in the ledger and spec, satisfied or explicitly cut with confirmation - never silently dropped.
+- **Binding defaults**: the Assumptions mechanism goes two-tier - low-cost defaults weld into an EARS criterion; high-cost or irreversible unknowns become blocking Open questions instead.
+- **Collision rule**: an assumed row touching a stated hard constraint is never self-adjudicated - it returns to the user at the next gate.
+- **Gate-turn trim**: the critic's biggest miss and mitigations are presented verbatim at gate 2; full rationale stays in the ledger.
+
 ---
 
 ## Appendix A — Research basis

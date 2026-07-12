@@ -18,7 +18,7 @@ module.exports = { read, fm };
 test("plugin manifest: name, version, author", () => {
   const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
   assert.strictEqual(plugin.name, "ideas");
-  assert.strictEqual(plugin.version, "0.2.3");
+  assert.strictEqual(plugin.version, "0.3.0");
   assert.strictEqual(plugin.author.name, "MisterVitoPro");
 });
 
@@ -105,6 +105,7 @@ test("skill: review gate with receipt and disposition", () => {
   assert.ok(body.includes("Approve / Approve + generate plan / Add more / Modify / Start over"), "gate options");
   assert.ok(body.includes("review receipt"), "receipt");
   assert.ok(body.includes("presented verbatim"), "critic callout verbatim");
+  assert.ok(body.includes("full rationale stays in the ledger"), "full rationale stays in the ledger, not the chat surface");
   assert.ok(body.includes("Only the two Approve options end the run"), "no self-declared completeness");
 });
 
@@ -133,6 +134,25 @@ test("spec template: mandatory honesty sections and EARS", () => {
     "contracts-not-code rule");
 });
 
+test("spec template: existing-system section", () => {
+  const t = read(TEMPLATE);
+  assert.ok(t.includes("## Existing system"), "existing system heading");
+  assert.ok(t.includes("greenfield - confirmed by user"), "only allowed empty value");
+});
+
+test("spec template: binding defaults replace passive assumptions", () => {
+  const t = read(TEMPLATE);
+  assert.ok(t.includes("Binding default:"), "binding default label");
+  assert.ok(t.includes("reversal"), "reversal-cost weighing");
+  assert.ok(t.includes("welded into a matching EARS criterion"), "binding default welded into EARS");
+});
+
+test("spec template: definition of done and constraint-conflict check", () => {
+  const t = read(TEMPLATE);
+  assert.ok(t.includes("## Definition of done"), "definition of done heading");
+  assert.ok(t.includes("constraint-conflict check"), "constraint-conflict check line");
+});
+
 test("fixture ledger maps every status to a template destination", () => {
   const l = read(FIXTURE_LEDGER);
   const t = read(TEMPLATE);
@@ -152,6 +172,19 @@ test("question-craft: taxonomy and wave guidance", () => {
   }
   assert.ok(c.includes("recommended default"), "defaults guidance");
   assert.ok(c.includes("later waves probe contradictions"), "descending-wave intent");
+});
+
+test("question-craft: standing probes", () => {
+  const c = read(CRAFT);
+  assert.ok(c.includes("## Standing probes"), "standing probes heading");
+  assert.ok(c.includes("air-gap"), "non-functionals air-gap probe");
+  assert.ok(c.includes("list every screen"), "interfaces surface-inventory probe");
+});
+
+test("question-craft: interviewing rules", () => {
+  const c = read(CRAFT);
+  assert.ok(c.includes("one requirement type per question"), "one requirement type per question");
+  assert.ok(c.includes("paraphrase"), "paraphrase-before-binding rule");
 });
 
 const AUDITOR = "agents/spec-auditor.md";
@@ -187,7 +220,7 @@ test("trigger queries: at least 20, both polarities, messy phrasing", () => {
   assert.ok(shouldNot.length >= 8, "at least 8 should-not-trigger queries, got " + shouldNot.length);
 });
 
-test("docs + version reflect the v0.2.0 adapter feature", () => {
+test("docs + version reflect the v0.3.0 breadth-floor feature", () => {
   const readme = read("README.md");
   assert.ok(readme.includes("/ideas:interview"), "README documents the command");
   assert.ok(readme.includes("decided"), "README explains ledger statuses");
@@ -195,6 +228,8 @@ test("docs + version reflect the v0.2.0 adapter feature", () => {
   assert.ok(readme.includes("MisterVitoPro"), "author credit");
   assert.ok(readme.includes("--plan-runner"), "README documents the adapter flag");
   assert.ok(readme.includes("Approve + generate plan"), "README documents the gate option");
+  assert.ok(readme.includes("binding default"), "README documents binding defaults");
+  assert.ok(readme.includes("coverage gate"), "README documents floor v2");
 });
 
 const ADAPTER = "skills/interview/references/plan-adapter.md";
@@ -216,14 +251,35 @@ test("plan adapter: refusals, honesty carry, and task shape", () => {
   assert.ok(a.includes("the spec alone suffices"), "standalone re-entry input rule");
 });
 
-test("skill: elicitation floor", () => {
+test("skill: elicitation floor v2 - breadth gate", () => {
   const { body } = fm(read(SKILL));
   assert.ok(body.includes("## Elicitation floor"), "elicitation floor heading");
   assert.ok(body.includes("flagging a gap is not a substitute for asking about it"),
     "gap flagging is not asking");
+  assert.ok(body.includes("Gap waves buy breadth, never depth"), "breadth-over-depth rule");
+  assert.ok(body.includes("sweep the empty categories"), "sweep-the-empty-categories rule");
+  assert.ok(body.includes("Non-functionals") && body.includes("Lifecycle") && body.includes("Interfaces"),
+    "chronic blind spots named");
   assert.ok(body.includes("up to two extra gap waves"), "extra gap wave bound");
   assert.ok(body.includes("still within the 5-call cap"), "gap waves respect the call cap");
-  assert.ok(body.includes("names the categories left unprobed"), "receipt names unprobed categories");
+  assert.ok(body.includes("Not probed:"), "receipt names unprobed categories");
+  assert.ok(body.includes("all categories probed"), "receipt clean-case phrasing");
+});
+
+test("skill: existing-system baseline", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("existing-system baseline"), "baseline term");
+  assert.ok(body.includes("cannot draft while the baseline is unknown"), "baseline blocks drafting");
+});
+
+test("skill: round-trip requirement rule", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("never silently dropped"), "no requirement silently dropped");
+});
+
+test("skill: assumption collision rule", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("never self-adjudicated"), "hard-constraint collisions go back to the user");
 });
 
 test("skill: plan adapter wiring", () => {

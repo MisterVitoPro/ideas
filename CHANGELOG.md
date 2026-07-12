@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0] - 2026-07-11
+
+### Added
+- Elicitation floor v2: the floor is now a category-coverage gate - every ambiguity-taxonomy category needs a `decided` row or an explicit waiver before the approach checkpoint, gap waves sweep breadth before depth, and the chronic blind spots (Non-functionals, Lifecycle, Interfaces) are weighted first. The review receipt always names unprobed categories ("Not probed: ..." or "all categories probed").
+- Existing-system baseline: brownfield interviews establish language/runtime, current behavior, integrated services, and existing data from the repo before drafting; greenfield is now a claim the user confirms, not a default the model assumes.
+- Round-trip rule: every concrete requirement stated in the user's idea lands in the ledger and spec, satisfied or explicitly cut with confirmation - never silently dropped.
+- Binding defaults: the spec template's Assumptions mechanism goes two-tier - low-cost, reversible unknowns become a binding default welded into a matching EARS criterion; high-cost or irreversible unknowns escalate to blocking Open questions instead.
+- Collision rule: an assumed ledger row touching a stated hard constraint is never self-adjudicated - it returns to the user at the next gate.
+- Definition of done and constraint-conflict check added to the spec template; standing probes (Lifecycle, Non-functionals, Interfaces surface inventory) and interviewing rules (one requirement type per question, paraphrase-before-binding) added to `question-craft.md`.
+- Gate-turn trim: the critic's biggest miss and mitigations are presented verbatim at the review gate; the full rationale stays in the ledger rather than the chat surface.
+
+Evidence: ideas-bench `docs/pilot2-2026-07-11-report.md` and its tier-D failure analysis - 15 of 22 build failures traced to facts that were never elicited or were self-adjudicated instead of confirmed by the user; misses concentrated in Lifecycle (67%), Non-functionals (63%), and Interfaces (48%).
+
 ## [0.2.3] - 2026-07-10
 
 ### Fixed

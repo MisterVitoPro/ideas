@@ -16,9 +16,7 @@ The interview sizes itself to the task (a triage batch picks S/M/L depth), asks 
 multiple-choice questions with recommended defaults, and records every answer in an on-disk
 ledger with three statuses: `decided` (you chose), `assumed` (a labeled default you did not
 confirm), and `open`. The spec is drafted from the ledger - not from conversational memory - so
-the run survives /clear and resumes from the file alone. An elicitation floor sweeps the ambiguity
-taxonomy before drafting - the interview spends its remaining question budget on unprobed critical
-ground rather than closing early.
+the run survives /clear and resumes from the file alone. The elicitation floor is a category-coverage gate: every ambiguity-taxonomy category needs a decided row or an explicit waiver before the approach checkpoint, weighted toward the chronic blind spots (Non-functionals, Lifecycle, Interfaces). Unconfirmed items become binding defaults - low-cost ones weld into an acceptance criterion and proceed, high-cost or irreversible ones become blocking open questions instead.
 
 Before you review the draft, two read-only agents run in parallel:
 - `ideas:spec-auditor` (binding): every claim in the spec must trace to a decided ledger row or
@@ -47,7 +45,7 @@ two different ways.
 ## Roadmap
 
 - 0.2.0 (shipped): plan-runner output adapter - single structured plan file, contracts not code.
-- 0.3.x: plan-runner's run/pr migrate in as /ideas:execute-plan and /ideas:pr.
+- 0.4.x: plan-runner's run/pr migrate in as /ideas:execute-plan and /ideas:pr.
 - Benchmark harness: lives in its own repo, [ideas-bench](https://github.com/MisterVitoPro/ideas-bench),
   so this plugin ships lean. Paired, blind, simulated-user comparison against
   superpowers:brainstorming (6-scenario pilot, paired statistics, pre-declared success bar);

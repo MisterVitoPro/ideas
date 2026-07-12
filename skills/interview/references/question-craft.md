@@ -34,3 +34,14 @@ Hard tech choices, versions, platforms, deadlines, things that cannot change.
 
 ## Lifecycle
 Rollout, rollback, deprecation, who maintains it, how it gets verified in production.
+
+## Standing probes
+Ask these regardless of category coverage elsewhere - they catch misses the taxonomy sweep alone tends to miss:
+- Lifecycle: "how does existing data migrate, and how is this rolled back if it misbehaves?"
+- Non-functionals: "what environments and platforms must this run identically on - and are there network, air-gap, or size limits?"
+- Interfaces (surface inventory): "list every screen, slot, affordance, and output this touches."
+
+## Interviewing rules
+Ask one requirement type per question - mixing purpose and interfaces in one multiple-choice question makes the answer ambiguous to the ledger.
+Anchor follow-up questions to the immediately preceding answer rather than re-opening earlier ground.
+Before an answer becomes a binding default on a critical constraint, paraphrase it back to the user for confirmation in the same wave.
