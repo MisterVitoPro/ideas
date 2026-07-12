@@ -44,7 +44,7 @@ ideas is the pipeline's front door, not a replacement for
 [plan-runner](https://github.com/MisterVitoPro/plan-runner): the interview produces the audited
 spec, "Approve + generate plan" shapes it into plan-runner's input, and `/plan-runner:run`
 remains the execution engine. Both install side by side from the same marketplace. A future
-release (0.4.x on the roadmap) is planned to migrate plan-runner's `run`/`pr` commands into this
+release is planned to migrate plan-runner's `run`/`pr` commands into this
 plugin as `/ideas:execute-plan` and `/ideas:pr`; until that ships and is announced, plan-runner
 stays a separate, fully supported plugin.
 
@@ -57,7 +57,7 @@ stays a separate, fully supported plugin.
 ## Roadmap
 
 - 0.2.0 (shipped): plan-runner output adapter - single structured plan file, contracts not code.
-- 0.4.x: plan-runner's run/pr migrate in as /ideas:execute-plan and /ideas:pr.
+- A future release: plan-runner's run/pr migrate in as /ideas:execute-plan and /ideas:pr.
 - Benchmark harness: lives in its own repo, [ideas-bench](https://github.com/MisterVitoPro/ideas-bench),
   so this plugin ships lean. Paired, blind, simulated-user comparison against
   superpowers:brainstorming (6-scenario pilot, paired statistics, pre-declared success bar);
