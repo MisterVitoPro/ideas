@@ -1,5 +1,7 @@
 # ideas
 
+[![version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FMisterVitoPro%2Fideas%2Fmain%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version&prefix=v&color=blue)](CHANGELOG.md)
+
 A Claude Code plugin that turns a raw idea into an audited design spec through a token-conscious
 interview. By MisterVitoPro.
 
@@ -71,3 +73,18 @@ Verification:
 
     node --test tests/contract.test.js
     claude plugin validate .
+
+## Releasing
+
+A release is not done at the four-place version bump (plugin.json, package.json,
+CHANGELOG.md, contract-test pin). Two more places must move, or installs silently
+lag behind main:
+
+1. Git tag `v<version>` on the merge commit -- automated by
+   `.github/workflows/auto-tag.yml`, which tags any plugin.json version landing on
+   main that has no tag yet.
+2. The marketplace pin in
+   [qa-claude-market](https://github.com/MisterVitoPro/qa-claude-market)
+   (`.claude-plugin/marketplace.json`: `ref` + `sha`), plus its README/description
+   copy if command surfaces changed. A scheduled drift check in that repo opens an
+   issue when the pin falls behind this repo's main.
