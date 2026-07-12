@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.1] - 2026-07-12
+
+### Changed
+- README: new "How it fits with plan-runner" section - ideas is the pipeline front door, not a plan-runner replacement; the run/pr migration remains a 0.4.x roadmap item.
+
 ## [0.3.0] - 2026-07-11
 
 ### Added
