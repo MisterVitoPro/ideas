@@ -1,0 +1,7 @@
+# ADR-0003: Auditor classifies unbacked claims; features resolve in the gate-2 call
+
+- Status: accepted (2026-07-12)
+- Context: The v1 auditor demotes every unbacked spec claim to Assumptions. That handles model-invented parameter defaults well, but scope creep - an unrequested feature the user never chose - survives in the spec as a quiet assumption instead of a user decision. The comparison against superpowers' YAGNI review surfaced this as the template's missing check.
+- Options considered: (1) auditor classifies each unbacked claim as feature or parameter, features resolved inside the existing gate-2 AskUserQuestion call; (2) a dedicated pre-gate resolution wave for feature flags; (3) receipt-only flagging where approval implies confirmation; (4) orchestrator-side classification keeping the auditor unchanged.
+- Decision: Option 1. The auditor's violation JSON gains "classification": "feature" | "parameter" (ambiguous cases default to feature) and the suggested_fix value "confirm-or-remove". Parameters demote to Assumptions as before; features become extra questions in the gate-2 call, capped at 3, overflow resolved in one follow-up call. Dispositions land in the ledger.
+- Consequences: No new pipeline stage or extra call on clean runs; the no-self-adjudication principle holds because the isolated auditor, not the orchestrator, classifies; gate 2 gets denser only when the draft actually invented features.
