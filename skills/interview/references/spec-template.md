@@ -29,9 +29,21 @@ Numbered. Each requirement cites its ledger row number in parentheses. For chang
 behavior, express requirements as change deltas - ADDED / MODIFIED / REMOVED against the current
 system - so the spec describes the change, not a re-imagined system.
 
+### Non-functional requirements
+Numbered in the same shared requirement sequence as the functional requirements above, each
+citing its ledger row in parentheses. Performance, security, reliability, observability, and
+other cross-cutting constraints belong here rather than scattered through Goals or Edge cases.
+
 ## Chosen approach
 The approach the user picked at the checkpoint, alternatives considered and why they lost.
 If an ADR was written, link `docs/adr/NNNN-<slug>.md` here instead of duplicating it.
+
+## Architecture & components
+Component names, one-line responsibilities, and interface boundaries only - no internals, no
+file trees beyond paths. Mandatory at every scope; write "None" only when the change touches a
+single existing component and introduces nothing new, the expected case at S scope. At L scope,
+include at least one data-flow line (e.g. `Client -> API -> Queue -> Worker`) showing how a
+request or artifact moves between the components listed.
 
 ## Data & interfaces
 Names, shapes, and boundaries only (signatures, file paths, formats).
@@ -44,6 +56,12 @@ Each criterion uses an EARS pattern and is directly testable, e.g.:
 - WHEN <trigger> THE SYSTEM SHALL <behavior>
 - WHILE <state> THE SYSTEM SHALL <behavior>
 - IF <undesired condition> THEN THE SYSTEM SHALL <response>
+
+## Verification strategy
+Mandatory at every scope; write "None" only when Acceptance criteria (EARS) above is also
+empty, the expected case at S scope. Group the criteria above and tag each group `unit`,
+`integration`, or `manual` so the harness and fixtures are settled before implementation starts,
+not improvised after.
 
 ## Assumptions (unconfirmed)
 Every `assumed` ledger row appears here as one of two tiers. Low-cost, reversible unknowns become

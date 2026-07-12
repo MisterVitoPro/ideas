@@ -40,6 +40,7 @@ Ask these regardless of category coverage elsewhere - they catch misses the taxo
 - Lifecycle: "how does existing data migrate, and how is this rolled back if it misbehaves?"
 - Non-functionals: "what environments and platforms must this run identically on - and are there network, air-gap, or size limits?"
 - Interfaces (surface inventory): "list every screen, slot, affordance, and output this touches."
+- Verification: "what's your unit/integration/manual split - and what harness and fixtures do you need for your acceptance criteria?"
 
 ## Interviewing rules
 Ask one requirement type per question - mixing purpose and interfaces in one multiple-choice question makes the answer ambiguous to the ledger.
