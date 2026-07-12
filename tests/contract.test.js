@@ -18,7 +18,7 @@ module.exports = { read, fm };
 test("plugin manifest: name, version, author", () => {
   const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
   assert.strictEqual(plugin.name, "ideas");
-  assert.strictEqual(plugin.version, "0.3.2");
+  assert.strictEqual(plugin.version, "0.4.0");
   assert.strictEqual(plugin.author.name, "MisterVitoPro");
 });
 
@@ -299,4 +299,30 @@ test("skill: token-cost discipline", () => {
   assert.ok(body.includes("keep wave prose lean"), "lean wave prose");
   assert.ok(body.includes("re-summarize answers in conversation"), "existing pin still holds");
   assert.ok(body.includes("not the spec body"), "review gate does not echo spec body");
+});
+
+// --- v0.4.0 template-v2 invariants ---
+
+test("spec template v2: architecture, verification, and NFR sections", () => {
+  const t = read(TEMPLATE);
+  assert.ok(t.includes("## Architecture & components"), "Architecture & components heading");
+  assert.ok(t.includes("## Verification strategy"), "Verification strategy heading");
+  assert.ok(t.includes("### Non-functional requirements"), "Non-functional requirements subheading");
+});
+
+test("skill: gate-2 digest cap and overflow phrase", () => {
+  const { body } = fm(read(SKILL));
+  assert.ok(body.includes("12 lines"), "12-line digest cap phrase");
+  assert.ok(body.includes("+N more in the file"), "overflow phrase");
+});
+
+test("spec-auditor: classification contract and confirm-or-remove", () => {
+  const { body } = fm(read(AUDITOR));
+  assert.ok(body.includes('"classification": "feature | parameter"'),
+    "classification field valued feature or parameter");
+  assert.ok(body.includes("cannot classify") && body.includes("classify it as feature"),
+    "ambiguous-defaults-to-feature rule");
+  assert.ok(
+    body.includes('"suggested_fix": "demote to Assumptions | add to Open questions | confirm-or-remove"'),
+    "confirm-or-remove suggested_fix option");
 });

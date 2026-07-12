@@ -84,6 +84,7 @@ picks via one AskUserQuestion call; record it as `decided`. If the decision is a
 (structure, storage, protocol, dependency) and scope is M or L, also write at most 2 MADR-lite ADRs
 (status, context, options, decision, consequences) to `docs/adr/NNNN-<slug>.md`. ADRs are committed;
 the spec links them instead of duplicating them.
+Before recording it as `decided`, enumerate the chosen approach's components - names and one-line responsibilities - so the row backs the spec's Architecture & components section.
 
 ## Draft
 Generate the spec from the ledger plus `references/spec-template.md` - not from conversational
@@ -101,7 +102,9 @@ Dispatch both registered agents at once, passing only the ledger and draft paths
 One AskUserQuestion: Approve / Approve + generate plan / Add more / Modify / Start over - accompanied by the review receipt
 ("N decided, N assumed, N open; audit clean|unaudited") and the critic's biggest miss and mitigations
 presented verbatim; the full rationale stays in the ledger, not the chat surface (if the critic failed,
-state "no critique available"). Record the critic disposition in the ledger:
+state "no critique available"). The receipt's digest shows the spec's Goals bullets and numbered requirement titles, capped at 12 lines total, appending "+N more in the file" on overflow.
+Auditor violations classified `feature` are presented in this same call as "unrequested - confirm or remove"; the disposition is recorded in the ledger. When more than 3 features are flagged, show the first 3 here and resolve the remainder in exactly one follow-up AskUserQuestion call.
+Record the critic disposition in the ledger:
 chosen mitigation -> `decided`; deferred -> `open`; dismissed -> noted. Only the two Approve options end the run;
 any other choice loops back to Draft and re-audit. On approval: commit the spec and ADRs (git-gated -
 when git is absent, write files and note that committing was skipped), set the ledger status to `complete`,

@@ -3,3 +3,4 @@ node_modules/
 .superpowers/
 docs/specs/*.ledger.md
 
+docs/plan-runner/
