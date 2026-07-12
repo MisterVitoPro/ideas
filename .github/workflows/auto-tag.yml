@@ -1,0 +1,36 @@
+name: Auto-tag release
+
+# Guarantees every version bump that lands on main gets a matching git tag,
+# so the marketplace always has a ref to pin. Fires only when plugin.json
+# changes; does nothing when the tag already exists.
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".claude-plugin/plugin.json"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create and push tag if missing
+        run: |
+          VERSION=$(node -p "require('./.claude-plugin/plugin.json').version")
+          TAG="v$VERSION"
+          if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists -- nothing to do."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag "$TAG"
+            git push origin "$TAG"
+            echo "Created and pushed $TAG"
+          fi
