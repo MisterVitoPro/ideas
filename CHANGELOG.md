@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.2] - 2026-07-12
+
+### Removed
+- Design spec documents removed from the shipped tree (docs/specs/); they remain in git history (tag v0.3.1) and the README no longer references them.
+
 ## [0.3.1] - 2026-07-12
 
 ### Changed
