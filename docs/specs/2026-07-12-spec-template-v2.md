@@ -42,13 +42,13 @@ Same-call gate integration of feature flags (Approach A), chosen over a dedicate
 
 ## Data & interfaces
 - Template headings, verbatim: `## Architecture & components`, `## Verification strategy`, `### Non-functional requirements`.
-- Auditor violation object, extended: `{"claim", "location", "reason": "unbacked | missing-row", "classification": "feature | parameter", "suggested_fix": "demote to Assumptions | add to Open questions | confirm-or-remove"}`; `classification` appears on `unbacked` violations. (ledger A1)
+- Auditor violation object, extended: `{"claim", "location", "reason": "unbacked | missing-row", "classification": "feature | parameter", "suggested_fix": "demote to Assumptions | add to Open questions | confirm-or-remove"}`; `classification` appears on `unbacked` violations. (ledger 18)
 - Gate-2 digest format: Goals bullets verbatim, then `N. <requirement title>` lines; on overflow, final line `+N more in the file`. (ledger 8)
 
 ## Edge cases & error handling
 - Empty Architecture, Verification strategy, or NFR content at S scope: section present with "None" - decided. (ledger 4)
 - Digest source sections longer than 12 lines: truncate with "+N more in the file" - decided. (ledger 8)
-- Auditor cannot decide feature vs parameter: classify as feature so it surfaces to the user - assumed binding default. (ledger A2)
+- Auditor cannot decide feature vs parameter: classify as feature so it surfaces to the user - decided. (ledger 19)
 - More than 3 flagged features: overflow resolved in one follow-up AskUserQuestion call - decided. (ledger 14)
 - Auditor fails to run: existing "unaudited" banner behavior, unchanged. (existing system)
 
@@ -73,8 +73,7 @@ Same-call gate integration of feature flags (Approach A), chosen over a dedicate
 None - this section arrives with v2; for this spec itself, criteria 1-4, 9, and 11 are unit-checkable via contract tests against the prose files; criteria 5-8, 10, 13, and 14 are integration-checked by the dogfood run (ledger 12); criteria 12 and 15 are manual sign-off on the dogfood output as the release gate.
 
 ## Assumptions (unconfirmed)
-- Binding default: auditor JSON field is named `classification` with values `feature`/`parameter` and new `suggested_fix` value `confirm-or-remove` (ledger A1) - welded to criterion 9.
-- Binding default: ambiguous classifications resolve to `feature` (ledger A2) - welded to criterion 8.
+None - former binding defaults A1 (auditor JSON field encoding) and A2 (ambiguous classifications resolve to feature) were confirmed as decided at the plan adapter. (ledger 18, 19)
 
 ## Open questions
 None.
