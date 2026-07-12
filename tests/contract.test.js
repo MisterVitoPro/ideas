@@ -18,7 +18,7 @@ module.exports = { read, fm };
 test("plugin manifest: name, version, author", () => {
   const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
   assert.strictEqual(plugin.name, "ideas");
-  assert.strictEqual(plugin.version, "0.3.1");
+  assert.strictEqual(plugin.version, "0.3.2");
   assert.strictEqual(plugin.author.name, "MisterVitoPro");
 });
 

@@ -63,7 +63,7 @@ stays a separate, fully supported plugin.
 
 ## Development
 
-Design spec: `docs/specs/2026-07-08-ideas-design.md`. Verification:
+Verification:
 
     node --test tests/contract.test.js
     claude plugin validate .
