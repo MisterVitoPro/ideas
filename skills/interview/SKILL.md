@@ -12,9 +12,6 @@ implementation tools from this skill - suggest next tools without invoking them.
 Flow: resume check -> context scan -> triage -> waves -> approach checkpoint -> draft
 -> audit + critic (parallel) -> review gate.
 
-With `--plan-runner <spec-path>`, skip the interview and run the plan adapter in
-`references/plan-adapter.md` against an existing approved spec - the spec alone suffices.
-
 ## Resume check
 If a `docs/specs/*-<slug>.ledger.md` exists with status other than `complete`, offer: resume or
 start over. On resume, read interview state only from the ledger, not from any prior transcript.
@@ -109,7 +106,7 @@ chosen mitigation -> `decided`; deferred -> `open`; dismissed -> noted. Only the
 any other choice loops back to Draft and re-audit. On approval: commit the spec and ADRs (git-gated -
 when git is absent, write files and note that committing was skipped), set the ledger status to `complete`,
 and suggest next tools without invoking them (e.g. /plan-runner:run). "Approve + generate plan"
-completes approval identically, then runs the plan adapter (`references/plan-adapter.md`) in the same session.
+completes approval identically, then runs `/ideas:plan` in the same session.
 Present the receipt and the callout, not the spec body - the file is the deliverable, and echoing
 it in conversation doubles its cost.
 

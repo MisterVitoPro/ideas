@@ -18,7 +18,7 @@ module.exports = { read, fm };
 test("plugin manifest: name, version, author", () => {
   const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
   assert.strictEqual(plugin.name, "ideas");
-  assert.strictEqual(plugin.version, "0.4.0");
+  assert.strictEqual(plugin.version, "0.5.0");
   assert.strictEqual(plugin.author.name, "MisterVitoPro");
 });
 
@@ -226,29 +226,97 @@ test("docs + version reflect the v0.3.0 breadth-floor feature", () => {
   assert.ok(readme.includes("decided"), "README explains ledger statuses");
   assert.ok(readme.includes("spec-auditor") && readme.includes("spec-critic"), "README names both agents");
   assert.ok(readme.includes("MisterVitoPro"), "author credit");
-  assert.ok(readme.includes("--plan-runner"), "README documents the adapter flag");
   assert.ok(readme.includes("Approve + generate plan"), "README documents the gate option");
   assert.ok(readme.includes("binding default"), "README documents binding defaults");
   assert.ok(readme.includes("coverage gate"), "README documents floor v2");
 });
 
-const ADAPTER = "skills/interview/references/plan-adapter.md";
+// --- v0.5.0 plan-stage invariants ---
 
-test("plan adapter: refusals, honesty carry, and task shape", () => {
-  const a = read(ADAPTER);
-  assert.ok(a.includes("no Acceptance criteria section"), "missing-criteria refusal trigger");
-  assert.ok(a.includes("never invents criteria"), "no fabrication");
-  assert.ok(a.includes("Confirm-or-carry"), "confirm-or-carry step");
-  assert.ok(a.includes("Flagged constraints (unconfirmed)"), "carried items header");
-  assert.ok(a.includes("flat ordered task list"), "no pre-waving");
-  assert.ok(a.includes("wave grouping belongs to plan-runner's analyzer"), "analyzer owns waves");
-  assert.ok(a.includes("full text of the EARS criteria"), "full criterion text rule");
-  assert.ok(a.includes("never a bare reference number"), "no numeric references");
-  assert.ok(a.includes("reference-only pattern"), "self-check trigger");
-  assert.ok(a.includes("refuse to write the plan and name the offending task"), "self-check refusal");
-  assert.ok(a.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "plan path convention");
-  assert.ok(a.includes("never function bodies, test code, or shell commands"), "contracts-not-code for plans");
-  assert.ok(a.includes("the spec alone suffices"), "standalone re-entry input rule");
+test("README: pipeline description references /ideas:plan and /ideas:tickets, drops --plan-runner", () => {
+  const readme = read("README.md");
+  assert.ok(readme.includes("/ideas:plan"), "README documents /ideas:plan");
+  assert.ok(readme.includes("/ideas:tickets"), "README documents /ideas:tickets");
+  assert.ok(!readme.includes("--plan-runner"), "README no longer documents the retired --plan-runner flag");
+});
+
+const PLAN_SKILL = "skills/plan/SKILL.md";
+const TASK_FORMAT = "skills/plan/references/task-format.md";
+const TICKETS_SKILL = "skills/tickets/SKILL.md";
+
+test("ideas:plan skill: frontmatter name and trigger-crafted description", () => {
+  const { frontmatter } = fm(read(PLAN_SKILL));
+  assert.match(frontmatter, /^name: plan$/m);
+  const desc = frontmatter.match(/^description: (.+)$/m)[1];
+  assert.ok(desc.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "description names the plan path convention");
+  assert.ok(desc.includes("/plan-runner:run"), "description names the plan-runner consumer");
+});
+
+test("ideas:plan skill: procedure pins refusal, carry, walking skeleton, task IDs", () => {
+  const text = read(PLAN_SKILL);
+  assert.ok(text.includes("references/task-format.md"), "points at the task-format reference");
+  assert.ok(text.includes("no Acceptance criteria section"), "missing-criteria refusal trigger");
+  assert.ok(text.includes("never invent criteria"), "no fabrication");
+  assert.ok(text.includes("Flagged constraints (unconfirmed)"), "carried items header");
+  assert.ok(text.includes("<slug>-t<NN>"), "task ID scheme");
+  assert.ok(text.includes("never renumbered"), "task ID stability");
+  assert.ok(text.includes("walking skeleton"), "walking skeleton rule");
+  assert.ok(text.includes("flat ordered task list"), "no pre-waving");
+  assert.ok(text.includes("accepted by /plan-runner:run unchanged"), "plan-runner compatibility");
+  assert.ok(text.includes("reference-only pattern"), "self-check trigger");
+  assert.ok(text.includes("## Known gotchas"), "gotchas section present");
+});
+
+test("task-format reference: field lines verbatim and task-ID scheme", () => {
+  const t = read(TASK_FORMAT);
+  for (const field of [
+    "### Task N: <title>",
+    "Task ID:",
+    "Owned files:",
+    "Interfaces:",
+    "Acceptance criteria:",
+    "Verification:",
+    "Non-goals:",
+    "Blocked by:",
+    "Constraints:",
+  ]) {
+    assert.ok(t.includes(field), "task-format pins field line " + field);
+  }
+  assert.ok(t.includes("<slug>-t<NN>"), "task-ID scheme");
+  assert.ok(t.includes("never renumbered") || t.includes("SHALL NOT change"), "task-ID stability rule");
+});
+
+test("ideas:tickets skill: frontmatter name and trigger-crafted description", () => {
+  const { frontmatter } = fm(read(TICKETS_SKILL));
+  assert.match(frontmatter, /^name: tickets$/m);
+  const desc = frontmatter.match(/^description: (.+)$/m)[1];
+  assert.ok(desc.includes("Definition-of-Ready"), "description names the DoR gate");
+  assert.ok(desc.includes("Not for drafting or editing the plan itself"), "exclusion clause present");
+});
+
+test("ideas:tickets skill: preflight refusals, gh-only, labels, sub-issue linking", () => {
+  const text = read(TICKETS_SKILL);
+  assert.ok(text.includes("no GitHub remote"), "no-remote refusal phrase");
+  assert.ok(text.includes("gh is missing"), "gh-missing refusal phrase");
+  assert.ok(text.includes("gh is unauthenticated"), "gh-unauthenticated refusal phrase");
+  assert.ok(text.includes("using only the gh CLI, storing no tokens in files"), "gh-only no-tokens rule");
+  assert.ok(text.includes("ideas-plan:<slug>") && text.includes("agent-ready"), "issue labels");
+  assert.ok(text.includes("addSubIssue"), "sub-issue linking mutation named");
+  assert.ok(text.includes("references/emission.md"), "delegates DoR/upsert detail to emission reference");
+  assert.ok(text.includes("checklist item under the sub-issue fallback") || text.includes("sub-issue fallback"),
+    "sub-issue fallback announced");
+});
+
+test("ideas:plan skill: refusals, honesty carry, and task shape", () => {
+  const p = read(PLAN_SKILL);
+  assert.ok(p.includes("no Acceptance criteria section"), "missing-criteria refusal trigger");
+  assert.ok(p.includes("never invent criteria"), "no fabrication");
+  assert.ok(p.includes("Flagged constraints (unconfirmed)"), "carried items header");
+  assert.ok(p.includes("flat ordered task list"), "no pre-waving");
+  assert.ok(p.includes("<slug>-t<NN>"), "task ID scheme");
+  assert.ok(p.includes("never renumbered"), "task ID stability");
+  assert.ok(p.includes("reference-only pattern"), "self-check trigger");
+  assert.ok(p.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "plan path convention");
 });
 
 test("skill: elicitation floor v2 - breadth gate", () => {
@@ -282,12 +350,10 @@ test("skill: assumption collision rule", () => {
   assert.ok(body.includes("never self-adjudicated"), "hard-constraint collisions go back to the user");
 });
 
-test("skill: plan adapter wiring", () => {
+test("skill: review gate routes to /ideas:plan, drops --plan-runner", () => {
   const { body } = fm(read(SKILL));
-  assert.ok(body.includes("--plan-runner"), "standalone flag");
-  assert.ok(body.includes("references/plan-adapter.md"), "lazy pointer");
-  assert.ok(body.includes("completes approval identically, then runs the plan adapter"),
-    "approve+generate semantics");
+  assert.ok(!body.includes("--plan-runner"), "standalone flag no longer accepted");
+  assert.ok(body.includes("runs `/ideas:plan` in the same session"), "approve+generate routes to /ideas:plan");
 });
 
 test("skill: token-cost discipline", () => {
