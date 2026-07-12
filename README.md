@@ -30,10 +30,12 @@ boundaries), a Verification strategy section (each criteria group tagged unit, i
 manual), change deltas for brownfield work, mandatory Assumptions and Open questions sections, and
 optionally 1-2 MADR-lite ADRs in `docs/adr/`. The ledger itself is gitignored.
 
-After approval, "Approve + generate plan" (or `/ideas:interview --plan-runner <spec-path>` later)
-emits a plan-runner-ready plan: a flat task list where every task carries owned files, interfaces,
-and the full text of its EARS criteria - contracts only, plan-runner's TDD agents write the code.
-Unresolved assumptions carry into the plan header as flagged constraints, never dropped.
+After approval, "Approve + generate plan" (or `/ideas:plan` run standalone against an approved spec
+later) emits a plan-runner-ready plan: a flat task list where every task carries owned files,
+interfaces, and the full text of its EARS criteria - contracts only, plan-runner's TDD agents write
+the code. Unresolved assumptions carry into the plan header as flagged constraints, never dropped.
+`/ideas:tickets` then projects that plan file to GitHub as agent-agnostic issues - a parent tracking
+issue plus one linked sub-issue per task that clears a Definition-of-Ready gate.
 
 Not for typos, renames, or one-line fixes - invoke it when the thing could reasonably be built
 two different ways.

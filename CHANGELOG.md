@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.0] - 2026-07-12
+
+### Added
+- Plan stage: `/ideas:plan` writes a canonical Contracts+ plan file (`docs/plans/YYYY-MM-DD-<slug>.plan.md`) from an approved spec - flat ordered task list, stable `<slug>-tNN` task IDs, full EARS criterion text, verification commands, non-goals, and blocked-by edges - accepted by `/plan-runner:run` unchanged.
+- `/ideas:tickets` projects a plan file to GitHub as agent-agnostic issues behind a Definition-of-Ready gate: one parent tracking issue plus one labeled, linked sub-issue per exported task, using only the `gh` CLI with no tokens stored in files; re-runs upsert via an in-body task-ID marker rather than GitHub search.
+
+### Changed
+- The interview's "Approve + generate plan" gate now routes into `/ideas:plan`; the standalone `--plan-runner <spec-path>` flag is retired in favor of running `/ideas:plan` directly.
+
 ## [0.4.0] - 2026-07-12
 
 ### Added
