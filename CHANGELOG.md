@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0] - 2026-07-12
+
+### Added
+- Spec template v2: two mandatory sections - `## Architecture & components` (component names, one-line responsibilities, and interface boundaries; at least one data-flow line at L scope, "None" allowed at S) and `## Verification strategy` (each acceptance-criteria group tagged unit, integration, or manual) - plus a `### Non-functional requirements` subsection numbered in the shared requirement sequence. Both new sections follow the honesty-section rule: structurally mandatory at every scope.
+- Review gate-2 digest: the receipt shows the spec's Goals bullets and numbered requirement titles capped at 12 lines total, appending "+N more in the file" on overflow, and never echoes the full spec body.
+- Auditor scope-creep verdict: unbacked violations now carry a `classification` field valued `feature` (adds capability or user-visible surface) or `parameter` (fills in a value for something already decided); unclassifiable claims default to `feature`, Verification strategy tags are always `parameter`, and a new `confirm-or-remove` suggested_fix routes feature-classified claims to the gate as "unrequested - confirm or remove".
+- Verification standing probe (unit/integration/manual split, harness, fixtures) added to `question-craft.md` to give the Verification strategy section a ledger source.
+
 ## [0.3.2] - 2026-07-12
 
 ### Removed

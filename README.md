@@ -25,7 +25,9 @@ Before you review the draft, two read-only agents run in parallel:
   mitigations, shown to you verbatim at the review gate.
 
 Output: a committed spec (`docs/specs/YYYY-MM-DD-<slug>.md`) with EARS acceptance criteria,
-change deltas for brownfield work, mandatory Assumptions and Open questions sections, and
+an Architecture & components section (component names, responsibilities, and interface
+boundaries), a Verification strategy section (each criteria group tagged unit, integration, or
+manual), change deltas for brownfield work, mandatory Assumptions and Open questions sections, and
 optionally 1-2 MADR-lite ADRs in `docs/adr/`. The ledger itself is gitignored.
 
 After approval, "Approve + generate plan" (or `/ideas:interview --plan-runner <spec-path>` later)
