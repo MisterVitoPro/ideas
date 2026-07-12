@@ -26,6 +26,7 @@ explicitly ("ADR-NNNN chose X - supersede it?"). When re-running against an appr
 the old spec as context and express the new one as change deltas. If user instructions (CLAUDE.md
 or in-chat) conflict with interviewing first, say so in one sentence and ask which wins - silent
 stand-down and silent override both betray the user.
+For brownfield work, establish the existing-system baseline first - language/runtime, current behavior, already-integrated services, and existing data pulled from the repo itself - and confirm inferences instead of re-asking known facts; the skill cannot draft while the baseline is unknown, so greenfield is a claim the user confirms, not a default the model assumes.
 
 ## Triage (one AskUserQuestion call, up to 4 questions)
 Establish: scope (S/M/L - recommend one), who consumes the spec, hard constraints, greenfield vs
@@ -53,14 +54,13 @@ After each wave, append the new rows to the ledger with a targeted edit anchored
 heading - whole-file rewrites were measured as the interview's dominant token cost. Do not
 re-summarize answers in conversation (the file is the state), and keep wave prose lean: the
 questions themselves, one line of context each.
+Every concrete requirement stated in the user's idea lands in the ledger and spec, satisfied or explicitly cut with user confirmation - never silently dropped.
 
 ## Elicitation floor
-Before the approach checkpoint, sweep the ambiguity taxonomy in `references/question-craft.md`
-against the ledger. A category with no decided row and plausible bearing on the idea is an
-elicitation gap - flagging a gap is not a substitute for asking about it. Spend up to two extra gap waves
-on the sharpest gaps (batched as usual, still within the 5-call cap); only when the
-cap is exhausted or the user chose "Draft the spec now" may remaining gaps become `assumed` or
-`open` - and then the review receipt names the categories left unprobed.
+Before the approach checkpoint, every category in the ambiguity taxonomy (`references/question-craft.md`) needs at least one `decided` row or an explicit waiver - flagging a gap is not a substitute for asking about it.
+Gap waves buy breadth, never depth: sweep the empty categories before spending a second gap wave deepening one already touched; Non-functionals, Lifecycle, and Interfaces are the chronic blind spots, so weight gap waves toward them first.
+Spend up to two extra gap waves on the sharpest gaps (batched as usual, still within the 5-call cap); only when the cap is exhausted or the user chose "Draft the spec now" may a remaining gap become `assumed`, `open`, or an explicit waiver.
+The review receipt at gate 2 always states the outcome - "Not probed: Lifecycle, Interfaces" naming every category left unprobed, or "all categories probed" when none remain.
 
 ## Ledger (the source of truth)
 Path: `docs/specs/YYYY-MM-DD-<slug>.ledger.md`, beside the future spec. Fixed headings:
@@ -76,6 +76,7 @@ or timed-out answers: re-ask once as plain numbered prose; if still unanswered, 
 (with a labeled default) or `open` - a model guess is not promoted to `decided`, because the spec
 must distinguish what the user chose from what the model filled in. On first write,
 append the ledger file to the target repo's .gitignore (git-gated); a hand-edited ledger is authoritative.
+An assumed row that touches a stated hard constraint (compliance, downtime, deadline, platform floor) is never self-adjudicated - it goes back to the user at the next gate instead of the spec resolving it alone.
 
 ## Approach checkpoint
 Present 2-3 candidate approaches with trade-offs and a recommendation in one message; the user
@@ -98,8 +99,9 @@ Dispatch both registered agents at once, passing only the ledger and draft paths
 
 ## Review gate
 One AskUserQuestion: Approve / Approve + generate plan / Add more / Modify / Start over - accompanied by the review receipt
-("N decided, N assumed, N open; audit clean|unaudited") and the critic's callout presented verbatim
-(if the critic failed, state "no critique available"). Record the critic disposition in the ledger:
+("N decided, N assumed, N open; audit clean|unaudited") and the critic's biggest miss and mitigations
+presented verbatim; the full rationale stays in the ledger, not the chat surface (if the critic failed,
+state "no critique available"). Record the critic disposition in the ledger:
 chosen mitigation -> `decided`; deferred -> `open`; dismissed -> noted. Only the two Approve options end the run;
 any other choice loops back to Draft and re-audit. On approval: commit the spec and ADRs (git-gated -
 when git is absent, write files and note that committing was skipped), set the ledger status to `complete`,
