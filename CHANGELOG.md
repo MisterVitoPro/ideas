@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.6.0] - 2026-07-12
+
+### Added
+- `/ideas:plan` completion gate: once the plan file is written (or on re-entry, resumed), one
+  AskUserQuestion offers up to five options in order - "Execute with plan-runner" (shown and
+  recommended only when `plan-runner:run` is available in the session), "Run inline", "Run with
+  subagents", "Create GitHub tickets" (shown only when the repo has a GitHub remote and `gh` is on
+  PATH), and "Stop here"; an empty answer is always treated as "Stop here", never as consent to
+  execute.
+- Two execution modes (inline, subagents), documented in `skills/plan/references/execution.md`:
+  both use the `exec(<slug>-tNN): <title>` commit convention, one commit per task, staging only
+  that task's owned files.
+- Resume: done-ness for a task is computed from a matching `exec()` commit whose title exactly
+  matches the current plan (or, when git is absent, from its Verification command passing) so a
+  re-run skips already-completed tasks instead of redoing them.
+- `/ideas:plan` re-entry check: if a plan file already exists for a spec, one AskUserQuestion asks
+  "Resume remaining tasks" or "Regenerate plan" before any regeneration, instead of silently
+  re-running emission.
+- `/ideas:tickets` execution re-offer: when invoked from the completion gate (not standalone), it
+  presents the same execution options minus "Create GitHub tickets" itself, exactly once, right
+  after its emission report.
+
+### Changed
+- Interview review gate default flipped: "Approve + generate plan" is now the recommended,
+  first-listed option (plain "Approve" remains available); it completes approval identically, then
+  runs `/ideas:plan` in the same session.
+
 ## [0.5.0] - 2026-07-12
 
 ### Added

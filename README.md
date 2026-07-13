@@ -32,12 +32,27 @@ boundaries), a Verification strategy section (each criteria group tagged unit, i
 manual), change deltas for brownfield work, mandatory Assumptions and Open questions sections, and
 optionally 1-2 MADR-lite ADRs in `docs/adr/`. The ledger itself is gitignored.
 
-After approval, "Approve + generate plan" (or `/ideas:plan` run standalone against an approved spec
-later) emits a plan-runner-ready plan: a flat task list where every task carries owned files,
-interfaces, and the full text of its EARS criteria - contracts only, plan-runner's TDD agents write
-the code. Unresolved assumptions carry into the plan header as flagged constraints, never dropped.
-`/ideas:tickets` then projects that plan file to GitHub as agent-agnostic issues - a parent tracking
-issue plus one linked sub-issue per task that clears a Definition-of-Ready gate.
+At the review gate, "Approve + generate plan" is the recommended, first-listed option (plain
+"Approve" remains available for those who want the spec alone). Either way approval completes
+identically; "Approve + generate plan" additionally runs `/ideas:plan` - also invocable standalone
+against an approved spec later - which emits a plan-runner-ready plan: a flat task list where every
+task carries owned files, interfaces, and the full text of its EARS criteria - contracts only,
+plan-runner's TDD agents write the code. Unresolved assumptions carry into the plan header as
+flagged constraints, never dropped.
+
+`/ideas:plan` does not stop at the written file. Once the plan is written (or, on re-entry into an
+already-planned spec, immediately after a one-question "resume remaining tasks or regenerate"
+check), it presents a completion gate: one question offering, in order, "Execute with plan-runner"
+(shown and marked recommended only when `plan-runner:run` is available in the session), "Run
+inline", "Run with subagents", "Create GitHub tickets" (shown only when the repo has a GitHub
+remote and `gh` is on PATH), and "Stop here". An empty answer always means "Stop here" - execution
+never begins on silence. "Run inline" and "Run with subagents" execute the plan's tasks directly,
+one `exec(<slug>-tNN): <title>` commit per task, so an interrupted or re-run execution resumes by
+skipping tasks that already have a matching commit rather than redoing them. "Create GitHub
+tickets" routes to `/ideas:tickets`, which projects the plan to GitHub as agent-agnostic issues - a
+parent tracking issue plus one linked sub-issue per task that clears a Definition-of-Ready gate -
+and then re-offers the same execution options (minus tickets itself) exactly once, so a
+plan-to-tickets run can still end in execution rather than stopping at the issue list.
 
 Not for typos, renames, or one-line fixes - invoke it when the thing could reasonably be built
 two different ways.
