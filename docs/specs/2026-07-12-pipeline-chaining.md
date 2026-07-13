@@ -195,6 +195,9 @@ docs/adr/0006-execution-gate-as-lazy-reference.md.
 
 ## Assumptions (unconfirmed)
 
+All three assumptions below were confirmed by the user at plan generation (2026-07-12); they
+remain listed for traceability.
+
 - Binding default: brownfield baseline is ideas v0.5.0 with the three-skill/two-agent layout and
   plan-runner as a sibling plugin whose /plan-runner:run accepts the plan file unchanged - welded
   into the acceptance criteria above (gate options and detection depend on it).
