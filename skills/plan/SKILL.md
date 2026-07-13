@@ -12,6 +12,19 @@ both the interview review gate and standalone invocation route into. Read
 `references/task-format.md` for the field-by-field task-section contract; this file is the
 procedure only.
 
+## Re-entry check
+Before emission (before step 1), check whether `docs/plans/YYYY-MM-DD-<slug>.plan.md` already
+exists for this spec. If it does, ask once via one AskUserQuestion - "Resume remaining tasks" or
+"Regenerate plan" - before any regeneration; do not silently re-run the emission procedure against
+an already-planned spec. "Resume remaining tasks" skips steps 1-9 entirely, keeps the existing
+plan file and its task IDs untouched, and proceeds straight to the completion gate below.
+"Regenerate plan" proceeds through the full procedure, matching existing tasks by title and owned
+files (step 5) so their IDs carry forward. Either choice still ends at the completion gate -
+resuming does not by itself execute anything. Per-task done-ness (which tasks are already
+complete) is only ever computed if an execution mode is chosen at the gate, using the done-ness
+rule in `references/execution.md`; the plan-runner, tickets, and stop paths never need it and
+never load that file.
+
 ## Procedure
 
 1. Read the approved spec (and the ledger if present - it enriches traceability but its absence
@@ -44,6 +57,23 @@ procedure only.
    refuse to write the plan and name the offending task.
 10. Write the plan to docs/plans/YYYY-MM-DD-<slug>.plan.md. Commit is git-gated: when git is absent,
     write the file and note that committing was skipped.
+11. Completion gate: once the plan file is written and committed (or, on resume, immediately after
+    the re-entry check), present exactly one AskUserQuestion before ending the run, offering, in
+    order: "Execute with plan-runner" (only when `plan-runner:run` appears in the session's
+    available-skills list - detection is that skill-availability check only, never filesystem
+    probing - and marked recommended whenever it is shown), "Run inline", "Run with subagents",
+    "Create GitHub tickets" (only when the repo has a GitHub remote and `gh` is on PATH - a cheap
+    preflight only; tickets runs its own deeper auth check), and "Stop here". An empty answer is
+    treated as "Stop here" - execution never begins on silence. Route the answer:
+    - "Execute with plan-runner": hand the plan file path to `/plan-runner:run` and end this run.
+      `references/execution.md` is never read on this path.
+    - "Run inline" or "Run with subagents": read `references/execution.md` now - this is the first
+      and only point it is read - and follow its procedure for the chosen mode.
+    - "Create GitHub tickets": run `/ideas:tickets` against the plan file. `references/execution.md`
+      is never read on this path; the re-offer after tickets' emission report is defined in
+      skills/tickets/SKILL.md.
+    - "Stop here" or an empty answer: end the run exactly as /ideas:plan does today.
+      `references/execution.md` is never read on this path.
 
 ## Plan template
 
@@ -70,3 +100,7 @@ See `references/task-format.md` for the full field-by-field contract.
 - Re-emission: diffing by task title/owned-files overlap before assigning IDs matters more than
   it looks - a reordered task is still the same task, and losing that identity breaks
   /ideas:tickets' upsert lookup downstream.
+- AskUserQuestion can return empty answers inside plugin skills; the completion gate treats empty
+  as "Stop here", never as consent to execute - mirrors the interview's empty-answer gotcha.
+- The completion gate's option list is rebuilt from the live session state (available-skills list,
+  git remote, gh on PATH) every run - a prior run's option set is never cached or assumed to hold.
