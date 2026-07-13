@@ -96,7 +96,7 @@ Dispatch both registered agents at once, passing only the ledger and draft paths
 - `ideas:spec-critic` - advisory. Returns the single biggest miss plus 2-3 mitigations.
 
 ## Review gate
-One AskUserQuestion: Approve / Approve + generate plan / Add more / Modify / Start over - accompanied by the review receipt
+One AskUserQuestion: Approve + generate plan (recommended) / Approve / Add more / Modify / Start over - accompanied by the review receipt
 ("N decided, N assumed, N open; audit clean|unaudited") and the critic's biggest miss and mitigations
 presented verbatim; the full rationale stays in the ledger, not the chat surface (if the critic failed,
 state "no critique available"). The receipt's digest shows the spec's Goals bullets and numbered requirement titles, capped at 12 lines total, appending "+N more in the file" on overflow.

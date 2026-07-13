@@ -11,7 +11,7 @@ and `agent-ready`. Reads only the plan file - never the source spec or ledger (A
 plan file is the sole input so sub-issues stay agent-agnostic.
 
 Flow: preflight -> read plan -> Definition-of-Ready gate -> render bodies -> create/upsert
-issues -> link sub-issues -> emission report.
+issues -> link sub-issues -> emission report -> (gate-invoked only) execution re-offer.
 
 ## Preflight (refuse fast)
 This command targets a GitHub-backed repo. Before touching GitHub, check in order - on any
@@ -55,6 +55,27 @@ changed ones - see `references/emission.md` for the label-enumeration lookup and
 ## Emission report
 Report every emitted task by name, every held-back task with its one-line reason, and every
 failed gh write by name; announce the sub-issue fallback here when it triggered.
+
+## Execution re-offer (gate-invoked only)
+When `/ideas:tickets` is invoked from `/ideas:plan`'s completion gate (the user picked "Create
+GitHub tickets"), present exactly one AskUserQuestion immediately after the emission report,
+offering the same execution options as that completion gate minus "Create GitHub tickets" itself
+- no looping back into tickets: "Execute with plan-runner" (only when `plan-runner:run` appears in
+the session's available-skills list, marked recommended whenever shown), "Run inline", "Run with
+subagents", and "Stop here". Same hiding rule and same empty-answer-means-stop rule as the
+completion gate in `skills/plan/SKILL.md`. Route the answer identically to that gate:
+- "Execute with plan-runner": hand the plan file path to `/plan-runner:run` and end the run.
+- "Run inline" or "Run with subagents": read `skills/plan/references/execution.md` - the first and
+  only point it is read on this path - and follow its procedure for the chosen mode.
+- "Stop here" or an empty answer: end the run.
+
+This re-offer fires exactly once per gate-invoked run - it is never shown a second time and never
+re-enters `/ideas:tickets`.
+
+When `/ideas:tickets` is invoked standalone (directly, not via the completion gate), skip this
+section entirely: the emission report above is the last output, exactly as it is today. Tell
+gate-invoked from standalone apart by invocation context alone - never a state file or a
+plan-file field.
 
 ## Known gotchas
 - `gh auth status` writes to stderr on success in some gh versions - check exit code, not stream.

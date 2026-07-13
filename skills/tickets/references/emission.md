@@ -98,3 +98,7 @@ Every run - success, partial failure, or all-held-back - produces one report cov
 A re-run after a partial failure is safe by construction: unaffected issues are unchanged (same
 body, skipped write) and only the previously-failed tasks produce new writes, resolved through the
 same upsert lookup.
+
+This report is the last output of a standalone `/ideas:tickets` run. A run invoked from the
+`/ideas:plan` completion gate continues directly from this report into the one-time execution
+re-offer defined in `skills/tickets/SKILL.md` - that routing lives there, not here.
