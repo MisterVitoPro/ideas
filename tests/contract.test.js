@@ -18,7 +18,7 @@ module.exports = { read, fm };
 test("plugin manifest: name, version, author", () => {
   const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
   assert.strictEqual(plugin.name, "ideas");
-  assert.strictEqual(plugin.version, "0.5.0");
+  assert.strictEqual(plugin.version, "0.6.0");
   assert.strictEqual(plugin.author.name, "MisterVitoPro");
 });
 
@@ -102,7 +102,8 @@ test("skill: audit and critic contracts", () => {
 
 test("skill: review gate with receipt and disposition", () => {
   const { body } = fm(read(SKILL));
-  assert.ok(body.includes("Approve / Approve + generate plan / Add more / Modify / Start over"), "gate options");
+  assert.ok(body.includes("Approve + generate plan (recommended) / Approve / Add more / Modify / Start over"),
+    "gate options");
   assert.ok(body.includes("review receipt"), "receipt");
   assert.ok(body.includes("presented verbatim"), "critic callout verbatim");
   assert.ok(body.includes("full rationale stays in the ledger"), "full rationale stays in the ledger, not the chat surface");
@@ -242,6 +243,7 @@ test("README: pipeline description references /ideas:plan and /ideas:tickets, dr
 
 const PLAN_SKILL = "skills/plan/SKILL.md";
 const TASK_FORMAT = "skills/plan/references/task-format.md";
+const EXECUTION = "skills/plan/references/execution.md";
 const TICKETS_SKILL = "skills/tickets/SKILL.md";
 
 test("ideas:plan skill: frontmatter name and trigger-crafted description", () => {
@@ -380,6 +382,21 @@ test("skill: gate-2 digest cap and overflow phrase", () => {
   const { body } = fm(read(SKILL));
   assert.ok(body.includes("12 lines"), "12-line digest cap phrase");
   assert.ok(body.includes("+N more in the file"), "overflow phrase");
+});
+
+// --- v0.6.0 pipeline-chaining invariants ---
+
+test("ideas:plan skill: completion-gate step and re-entry (resume vs regenerate) step present", () => {
+  const p = read(PLAN_SKILL);
+  assert.ok(p.includes("Completion gate:"), "completion-gate step present");
+  assert.ok(p.includes("Re-entry check"), "re-entry check heading present");
+  assert.ok(p.includes("Resume remaining tasks") && p.includes("Regenerate plan"),
+    "resume vs regenerate options named");
+});
+
+test("execution reference: exists and pins the exec() commit convention", () => {
+  const e = read(EXECUTION);
+  assert.ok(e.includes("exec(<slug>-tNN): <title>"), "commit convention pinned verbatim");
 });
 
 test("spec-auditor: classification contract and confirm-or-remove", () => {
