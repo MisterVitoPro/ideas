@@ -15,16 +15,23 @@ function fm(text) {
 }
 module.exports = { read, fm };
 
-test("plugin manifest: name, version, author", () => {
-  const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
-  assert.strictEqual(plugin.name, "ideas");
-  assert.strictEqual(plugin.version, "0.6.0");
-  assert.strictEqual(plugin.author.name, "MisterVitoPro");
+test("plugin manifests: name, version, author", () => {
+  const claude = JSON.parse(read(".claude-plugin/plugin.json"));
+  const codex = JSON.parse(read(".codex-plugin/plugin.json"));
+  assert.strictEqual(claude.name, "ideas");
+  assert.strictEqual(codex.name, claude.name);
+  assert.strictEqual(claude.version, "0.7.0");
+  assert.strictEqual(codex.version, claude.version);
+  assert.strictEqual(claude.author.name, "MisterVitoPro");
+  assert.strictEqual(codex.author.name, claude.author.name);
+  assert.strictEqual(codex.skills, "./skills/");
 });
 
 test("versions agree across plugin.json, package.json, CHANGELOG", () => {
   const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
+  const codex = JSON.parse(read(".codex-plugin/plugin.json"));
   const pkg = JSON.parse(read("package.json"));
+  assert.strictEqual(codex.version, plugin.version);
   assert.strictEqual(pkg.version, plugin.version);
   assert.ok(read("CHANGELOG.md").includes("## [" + plugin.version + "]"),
     "CHANGELOG has an entry for the current version");
@@ -61,9 +68,9 @@ test("skill: hard gate and terminal state", () => {
 
 test("skill: triage, decomposition, caps, wave budget", () => {
   const { body } = fm(read(SKILL));
-  assert.ok(body.includes("one AskUserQuestion call, up to 4 questions"), "triage batch shape");
+  assert.ok(body.includes("one structured question call, up to 4 questions"), "triage batch shape");
   assert.ok(body.includes("interview exactly one sub-project"), "decomposition rule");
-  assert.ok(body.includes("at most 5 AskUserQuestion calls before the approach checkpoint"), "call cap");
+  assert.ok(body.includes("at most 5 structured question calls before the approach checkpoint"), "call cap");
   assert.ok(body.includes("4, then 3, then 2"), "descending wave counts");
 });
 
@@ -89,6 +96,8 @@ test("skill: ledger statuses and honesty invariant", () => {
 test("skill: audit and critic contracts", () => {
   const { body } = fm(read(SKILL));
   assert.ok(body.includes("ideas:spec-auditor") && body.includes("ideas:spec-critic"), "both agents dispatched");
+  assert.ok(body.includes("../../agents/spec-auditor.md") && body.includes("../../agents/spec-critic.md"),
+    "Codex can load both bundled agent definitions relative to the skill");
   assert.ok(body.includes("do not override an audit finding"), "no-self-verify");
   assert.ok(body.includes('"unaudited" banner'), "audit fallback");
   assert.ok(body.includes("single biggest miss"), "critic single-miss bound");
@@ -238,6 +247,8 @@ test("README: pipeline description references /ideas:plan and /ideas:tickets, dr
   const readme = read("README.md");
   assert.ok(readme.includes("/ideas:plan"), "README documents /ideas:plan");
   assert.ok(readme.includes("/ideas:tickets"), "README documents /ideas:tickets");
+  assert.ok(readme.includes("$ideas:interview") && readme.includes("$ideas:plan") && readme.includes("$ideas:tickets"),
+    "README documents Codex skill mentions");
   assert.ok(!readme.includes("--plan-runner"), "README no longer documents the retired --plan-runner flag");
 });
 
@@ -251,7 +262,7 @@ test("ideas:plan skill: frontmatter name and trigger-crafted description", () =>
   assert.match(frontmatter, /^name: plan$/m);
   const desc = frontmatter.match(/^description: (.+)$/m)[1];
   assert.ok(desc.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "description names the plan path convention");
-  assert.ok(desc.includes("/plan-runner:run"), "description names the plan-runner consumer");
+  assert.ok(desc.includes("plan-runner run skill"), "description names the plan-runner consumer");
 });
 
 test("ideas:plan skill: procedure pins refusal, carry, walking skeleton, task IDs", () => {
@@ -264,7 +275,7 @@ test("ideas:plan skill: procedure pins refusal, carry, walking skeleton, task ID
   assert.ok(text.includes("never renumbered"), "task ID stability");
   assert.ok(text.includes("walking skeleton"), "walking skeleton rule");
   assert.ok(text.includes("flat ordered task list"), "no pre-waving");
-  assert.ok(text.includes("accepted by /plan-runner:run unchanged"), "plan-runner compatibility");
+  assert.ok(text.includes("accepted by the plan-runner run skill unchanged"), "plan-runner compatibility");
   assert.ok(text.includes("reference-only pattern"), "self-check trigger");
   assert.ok(text.includes("## Known gotchas"), "gotchas section present");
 });
@@ -352,10 +363,25 @@ test("skill: assumption collision rule", () => {
   assert.ok(body.includes("never self-adjudicated"), "hard-constraint collisions go back to the user");
 });
 
-test("skill: review gate routes to /ideas:plan, drops --plan-runner", () => {
+test("skill: review gate routes to the Ideas plan skill, drops --plan-runner", () => {
   const { body } = fm(read(SKILL));
   assert.ok(!body.includes("--plan-runner"), "standalone flag no longer accepted");
-  assert.ok(body.includes("runs `/ideas:plan` in the same session"), "approve+generate routes to /ideas:plan");
+  assert.ok(body.includes("runs the Ideas plan skill in the same session"),
+    "approve+generate routes to the Ideas plan skill");
+});
+
+test("dual-client skill contract: Codex-safe frontmatter and host-neutral tooling", () => {
+  const allowed = new Set(["name", "description", "allowed-tools", "license", "metadata"]);
+  for (const rel of [SKILL, PLAN_SKILL, TICKETS_SKILL]) {
+    const { frontmatter, body } = fm(read(rel));
+    const keys = frontmatter.split("\n")
+      .filter((line) => line && !/^\s/.test(line) && line.includes(":"))
+      .map((line) => line.split(":", 1)[0]);
+    assert.ok(keys.every((key) => allowed.has(key)), `${rel} uses only Codex-safe frontmatter`);
+    assert.ok(!body.includes("skills/plan/") && !body.includes("skills/tickets/"),
+      `${rel} does not assume a repository-root path for bundled cross-skill references`);
+  }
+  assert.ok(read(SKILL).includes("request_user_input"), "interview maps questions to Codex input tooling");
 });
 
 test("skill: token-cost discipline", () => {

@@ -1,6 +1,7 @@
 # Task-format Contract Reference
 
-This document specifies the canonical task-section format used by `/ideas:plan` output and consumed by `/ideas:tickets` and plan-runner tools.
+This document specifies the canonical task-section format produced by the Ideas plan skill and
+consumed by the Ideas tickets and plan-runner skills.
 
 ## Task Structure
 

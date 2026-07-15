@@ -1,0 +1,40 @@
+{
+  "name": "ideas",
+  "version": "0.7.0",
+  "description": "Turn a raw idea into an audited design spec, a canonical implementation plan, and optionally agent-ready GitHub issues.",
+  "author": {
+    "name": "MisterVitoPro",
+    "url": "https://github.com/MisterVitoPro"
+  },
+  "homepage": "https://github.com/MisterVitoPro/ideas",
+  "repository": "https://github.com/MisterVitoPro/ideas",
+  "license": "MIT",
+  "keywords": [
+    "requirements",
+    "design-spec",
+    "planning",
+    "elicitation",
+    "github-issues",
+    "developer-tools"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Ideas",
+    "shortDescription": "Turn rough ideas into audited build plans",
+    "longDescription": "Run a scope-sized, ledger-backed interview; produce an audited design spec with EARS acceptance criteria; turn it into a canonical implementation plan; and optionally project ready tasks to GitHub issues.",
+    "developerName": "MisterVitoPro",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/MisterVitoPro/ideas",
+    "defaultPrompt": [
+      "Interview me to turn this rough idea into a spec.",
+      "Turn an approved design spec into an implementation plan.",
+      "Project this Ideas plan into GitHub tickets."
+    ],
+    "brandColor": "#7C3AED"
+  }
+}

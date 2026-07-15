@@ -53,8 +53,8 @@ test("plan skill: emits a flat ordered task list with no wave groupings", () => 
   assert.ok(body.includes("flat ordered task list"), "flat ordered task list phrase");
   assert.ok(/no wave grouping/i.test(body), "explicitly rules out wave grouping");
   assert.ok(/plan-runner('s)? analyzer/i.test(body), "waving stays plan-runner's analyzer's job");
-  assert.ok(/plan-runner:run.*unchanged|unchanged.*plan-runner:run/is.test(body),
-    "file is accepted by /plan-runner:run unchanged");
+  assert.ok(/plan-runner run skill.*unchanged|unchanged.*plan-runner run skill/is.test(body),
+    "file is accepted by the plan-runner run skill unchanged");
 });
 
 test("plan skill: Task 1 is a walking skeleton and every other task carries a blocked-by edge", () => {

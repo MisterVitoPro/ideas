@@ -1,8 +1,8 @@
 # Emission reference - Definition-of-Ready gate and upsert engine
 
-Read this file from `skills/tickets/SKILL.md` before emitting. It defines the DoR gate, the
+Read this file from `../SKILL.md` before emitting. It defines the DoR gate, the
 marker format and upsert lookup, the partial-failure report format, and the sub-issue fallback.
-Everything here operates on tasks already parsed per `skills/plan/references/task-format.md`.
+Everything here operates on tasks already parsed per `../../plan/references/task-format.md`.
 
 ## Definition-of-Ready gate
 
@@ -12,7 +12,7 @@ fails any check is held back with a one-line reason; it is never exported degrad
 - **Self-contained**: the task section supplies everything a worker needs without the source spec
   or ledger. Fails if the body would need to reference either - e.g. a bare acceptance-criteria
   reference number instead of full EARS text (already refused earlier, at plan-write time, but
-  hand-edited plans reach `/ideas:tickets` unchecked), or prose pointing at "the spec" or "the
+  hand-edited plans reach the Ideas tickets skill unchecked), or prose pointing at "the spec" or "the
   ledger" for meaning.
 - **File-isolated**: `Owned files` is present, non-empty, and disjoint from every other exported
   task's `Owned files`. Compute this as a single pass over the whole task set - two tasks that
@@ -24,7 +24,7 @@ fails any check is held back with a one-line reason; it is never exported degrad
 
 One-line reason format: `<task ID> (<title>): held back - <check> - <specific cause>`. Example:
 `plan-stage-t04 (tickets skill): held back - file-isolated - Owned files overlaps plan-stage-t05
-on skills/tickets/SKILL.md`.
+on `../SKILL.md`.
 
 Tasks that pass proceed to rendering and emission in plan order. When zero tasks pass, emit no
 issues - not even the parent tracking issue - and report every held-back reason; there is nothing
@@ -99,6 +99,6 @@ A re-run after a partial failure is safe by construction: unaffected issues are 
 body, skipped write) and only the previously-failed tasks produce new writes, resolved through the
 same upsert lookup.
 
-This report is the last output of a standalone `/ideas:tickets` run. A run invoked from the
-`/ideas:plan` completion gate continues directly from this report into the one-time execution
-re-offer defined in `skills/tickets/SKILL.md` - that routing lives there, not here.
+This report is the last output of a standalone Ideas tickets run. A run invoked from the Ideas
+plan skill's completion gate continues directly from this report into the one-time execution
+re-offer defined in `../SKILL.md` - that routing lives there, not here.

@@ -38,14 +38,16 @@ test("spec-auditor.md classification contract pinned as invariants", () => {
   );
 });
 
-test("release: version bumped to 0.4.0 in plugin.json", () => {
-  const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
-  assert.strictEqual(plugin.version, "0.4.0");
+test("release: client manifests are synchronized at 0.7.0", () => {
+  const claude = JSON.parse(read(".claude-plugin/plugin.json"));
+  const codex = JSON.parse(read(".codex-plugin/plugin.json"));
+  assert.strictEqual(claude.version, "0.7.0");
+  assert.strictEqual(codex.version, claude.version);
 });
 
-test("release: version bumped to 0.4.0 in package.json", () => {
+test("release: package version is synchronized at 0.7.0", () => {
   const pkg = JSON.parse(read("package.json"));
-  assert.strictEqual(pkg.version, "0.4.0");
+  assert.strictEqual(pkg.version, "0.7.0");
 });
 
 test("release: CHANGELOG.md has a 0.4.0 entry", () => {
@@ -53,10 +55,10 @@ test("release: CHANGELOG.md has a 0.4.0 entry", () => {
   assert.ok(changelog.includes("## [0.4.0]"), "CHANGELOG has an entry for 0.4.0");
 });
 
-test("release: contract-test version pin bumped to 0.4.0", () => {
+test("release: contract-test version pin is 0.7.0", () => {
   const contractSrc = read("tests/contract.test.js");
-  assert.ok(contractSrc.includes('"0.4.0"'),
-    "tests/contract.test.js pins version 0.4.0, not the prior release");
+  assert.ok(contractSrc.includes('"0.7.0"'),
+    "tests/contract.test.js pins version 0.7.0");
 });
 
 test("release: README documents the template v2 sections", () => {

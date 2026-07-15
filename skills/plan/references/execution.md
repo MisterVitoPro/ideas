@@ -1,10 +1,10 @@
 # Execution reference - inline and subagent modes
 
-Read this file from `skills/plan/SKILL.md` only after the user picks "Run inline" or "Run with
+Read this file from `../SKILL.md` only after the user picks "Run inline" or "Run with
 subagents" at the completion gate - it is never loaded on the plan-runner, tickets, or stop paths
 (ADR-0006). It defines both execution procedures, the commit convention, the done-ness rule that
 drives resume, and failure handling. Everything here operates on tasks already parsed per
-`skills/plan/references/task-format.md`; `<slug>` is the plan filename's slug (from
+`task-format.md`; `<slug>` is the plan filename's slug (from
 `docs/plans/YYYY-MM-DD-<slug>.plan.md`) and each task's ID is `<slug>-t<NN>`.
 
 ## Commit convention

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0] - 2026-07-14
+
+### Added
+- Codex plugin manifest and catalog-ready interface metadata for all three Ideas skills.
+- Dual-client validation in CI, including synchronized manifest/package versions and Codex-safe
+  skill frontmatter.
+
+### Changed
+- Skills now use host-neutral structured-question and skill-invocation wording, resolve bundled
+  references relative to their skill directories, and load the auditor/critic definitions into
+  subagents explicitly so the review gate works in both Claude Code and Codex.
+- README installation and invocation examples now cover both clients.
+
 ## [0.6.0] - 2026-07-12
 
 ### Added

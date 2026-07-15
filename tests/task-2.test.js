@@ -19,8 +19,8 @@ test("skill: unrequested feature presented as confirm-or-remove", () => {
 
 test("skill: more than 3 flagged features resolve in exactly one follow-up call", () => {
   const { body } = fm(read(SKILL));
-  assert.ok(body.includes("exactly one follow-up AskUserQuestion call"),
-    "remainder beyond 3 flagged features is resolved in exactly one follow-up AskUserQuestion call");
+  assert.ok(body.includes("exactly one follow-up structured question call"),
+    "remainder beyond 3 flagged features is resolved in one structured question call");
 });
 
 test("skill body: stays at or under the 150-line budget", () => {

@@ -17,7 +17,7 @@ function fm(text) {
 const SKILL = "skills/interview/SKILL.md";
 const ADAPTER = "skills/interview/references/plan-adapter.md";
 
-// --- flag removal: --plan-runner is retired in favor of /ideas:plan ---
+// --- flag removal: --plan-runner is retired in favor of the Ideas plan skill ---
 
 test("skill: --plan-runner flag is no longer mentioned anywhere in SKILL.md", () => {
   const text = read(SKILL);
@@ -30,18 +30,18 @@ test("skill: standalone flag-driven adapter entry point sentence is gone", () =>
     "the old '--plan-runner <spec-path>' standalone entry point sentence is removed");
 });
 
-// --- gate routing: 'Approve + generate plan' runs the /ideas:plan logic ---
+// --- gate routing: 'Approve + generate plan' runs the Ideas plan skill ---
 
-test("skill: review gate text references /ideas:plan", () => {
+test("skill: review gate text references the Ideas plan skill", () => {
   const { body } = fm(read(SKILL));
-  assert.ok(body.includes("/ideas:plan"), "gate text names the /ideas:plan command");
+  assert.ok(body.includes("Ideas plan skill"), "gate text names the Ideas plan skill");
 });
 
-test("skill: 'Approve + generate plan' routes into the /ideas:plan logic", () => {
+test("skill: 'Approve + generate plan' routes into the Ideas plan logic", () => {
   const { body } = fm(read(SKILL));
   assert.ok(
-    /completes approval identically, then runs (the )?`?\/ideas:plan`?/i.test(body),
-    "gate option 'Approve + generate plan' explicitly runs the /ideas:plan logic"
+    /completes approval identically, then runs the Ideas plan skill/i.test(body),
+    "gate option 'Approve + generate plan' explicitly runs the Ideas plan logic"
   );
 });
 
@@ -54,7 +54,7 @@ test("skill: gate no longer routes through the retired plan-adapter reference", 
 
 test("skill: the gate option set itself is unchanged by the routing swap", () => {
   const { body } = fm(read(SKILL));
-  assert.ok(body.includes("Approve / Approve + generate plan / Add more / Modify / Start over"),
+  assert.ok(body.includes("Approve + generate plan (recommended) / Approve / Add more / Modify / Start over"),
     "five gate options still present verbatim");
 });
 
