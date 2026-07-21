@@ -66,8 +66,10 @@ subagents", and "Stop here". Same hiding rule and same empty-answer-means-stop r
 completion gate in `../plan/SKILL.md`. A structured question call uses `AskUserQuestion` in
 Claude Code or `request_user_input` in Codex when available, with concise numbered prose as the
 fallback. Route the answer identically to that gate:
-- "Execute with plan-runner": hand the plan file path to the `plan-runner:run` skill using the
-  current host's invocation mechanism and end the run.
+- "Execute with plan-runner": never invoke the skill from this session. Tell the user to run
+  `/clear` first, then print the exact command to paste after clearing -
+  `/plan-runner:run <plan file path>` in Claude Code, `$plan-runner:run <plan file path>` in
+  Codex - and end the run.
 - "Run inline" or "Run with subagents": read `../plan/references/execution.md` - the first and
   only point it is read on this path - and follow its procedure for the chosen mode.
 - "Stop here" or an empty answer: end the run.

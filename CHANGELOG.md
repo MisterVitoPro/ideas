@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.1] - 2026-07-20
+
+### Changed
+- The "Execute with plan-runner" option at the plan completion gate (and the tickets execution
+  re-offer) no longer invokes `plan-runner:run` inside the same session. It now instructs the
+  user to run `/clear` first and prints the exact command to paste afterwards
+  (`/plan-runner:run <plan file>` in Claude Code, `$plan-runner:run <plan file>` in Codex), so
+  plan-runner starts with a fresh context and only the plan file it needs.
+
 ## [0.7.0] - 2026-07-14
 
 ### Added

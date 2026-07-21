@@ -1,6 +1,6 @@
 {
   "name": "ideas",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Turn a raw idea into an audited design spec, a canonical implementation plan, and optionally agent-ready GitHub issues.",
   "author": {
     "name": "MisterVitoPro",
