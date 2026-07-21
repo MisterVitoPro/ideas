@@ -68,9 +68,11 @@ never load that file.
     "Create GitHub tickets" (only when the repo has a GitHub remote and `gh` is on PATH - a cheap
     preflight only; tickets runs its own deeper auth check), and "Stop here". An empty answer is
     treated as "Stop here" - execution never begins on silence. Route the answer:
-    - "Execute with plan-runner": hand the plan file path to the `plan-runner:run` skill using the
-      current host's invocation mechanism and end this run.
-      `references/execution.md` is never read on this path.
+    - "Execute with plan-runner": never invoke the skill from this session - the run is at its
+      largest right here, and plan-runner needs only the plan file. Tell the user to run `/clear`
+      first, then print the exact command to paste after clearing -
+      `/plan-runner:run <plan file path>` in Claude Code, `$plan-runner:run <plan file path>` in
+      Codex - and end this run. `references/execution.md` is never read on this path.
     - "Run inline" or "Run with subagents": read `references/execution.md` now - this is the first
       and only point it is read - and follow its procedure for the chosen mode.
     - "Create GitHub tickets": run the Ideas tickets skill against the plan file. `references/execution.md`

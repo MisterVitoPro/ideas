@@ -20,7 +20,7 @@ test("plugin manifests: name, version, author", () => {
   const codex = JSON.parse(read(".codex-plugin/plugin.json"));
   assert.strictEqual(claude.name, "ideas");
   assert.strictEqual(codex.name, claude.name);
-  assert.strictEqual(claude.version, "0.7.0");
+  assert.strictEqual(claude.version, "0.7.1");
   assert.strictEqual(codex.version, claude.version);
   assert.strictEqual(claude.author.name, "MisterVitoPro");
   assert.strictEqual(codex.author.name, claude.author.name);
@@ -423,6 +423,19 @@ test("ideas:plan skill: completion-gate step and re-entry (resume vs regenerate)
 test("execution reference: exists and pins the exec() commit convention", () => {
   const e = read(EXECUTION);
   assert.ok(e.includes("exec(<slug>-tNN): <title>"), "commit convention pinned verbatim");
+});
+
+// --- v0.7.1 plan-runner handoff invariants ---
+
+test("plan + tickets skills: plan-runner path hands off via /clear instead of invoking", () => {
+  for (const [name, file] of [["plan", PLAN_SKILL], ["tickets", "skills/tickets/SKILL.md"]]) {
+    const text = read(file);
+    assert.ok(text.includes("`/clear`"), name + " tells the user to run /clear first");
+    assert.ok(text.includes("/plan-runner:run <plan file"), name + " prints the Claude Code command");
+    assert.ok(text.includes("$plan-runner:run <plan file"), name + " prints the Codex command");
+    assert.ok(!text.includes("hand the plan file path to the `plan-runner:run` skill"),
+      name + " no longer invokes plan-runner directly from the session");
+  }
 });
 
 test("spec-auditor: classification contract and confirm-or-remove", () => {

@@ -1,6 +1,6 @@
 {
   "name": "ideas",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "private": true,
   "description": "Claude Code and Codex plugin: token-conscious elicitation interviews producing audited design specs.",
   "author": "MisterVitoPro",

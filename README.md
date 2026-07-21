@@ -65,7 +65,11 @@ check), it presents a completion gate: one question offering, in order, "Execute
 (shown and marked recommended only when `plan-runner:run` is available in the session), "Run
 inline", "Run with subagents", "Create GitHub tickets" (shown only when the repo has a GitHub
 remote and `gh` is on PATH), and "Stop here". An empty answer always means "Stop here" - execution
-never begins on silence. "Run inline" and "Run with subagents" execute the plan's tasks directly,
+never begins on silence. "Execute with plan-runner" does not launch plan-runner inside the
+already-long planning session: it tells you to run `/clear` first, then prints the exact command
+to paste (`/plan-runner:run <plan file>` in Claude Code, `$plan-runner:run <plan file>` in Codex)
+so the execution engine starts with a fresh context and only the plan file it needs. "Run inline"
+and "Run with subagents" execute the plan's tasks directly,
 one `exec(<slug>-tNN): <title>` commit per task, so an interrupted or re-run execution resumes by
 skipping tasks that already have a matching commit rather than redoing them. "Create GitHub
 tickets" routes to the Ideas tickets skill, which projects the plan to GitHub as agent-agnostic issues - a
