@@ -6,6 +6,6 @@
   "author": "MisterVitoPro",
   "license": "MIT",
   "scripts": {
-    "test": "node --test tests/contract.test.js"
+    "test": "node --test tests/contract.test.js tests/docs-location.test.js"
   }
 }
