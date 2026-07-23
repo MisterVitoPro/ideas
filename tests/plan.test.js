@@ -26,7 +26,7 @@ test("plan skill: frontmatter names the command", () => {
 
 test("plan skill: writes the canonical plan file at the dated path", () => {
   const { body } = fm(read(SKILL));
-  assert.ok(body.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "plan path convention");
+  assert.ok(body.includes("<root>/plans/YYYY-MM-DD-<slug>.plan.md"), "plan path convention");
   assert.ok(body.includes("Goal"), "header carries Goal");
   assert.ok(body.includes("Source spec"), "header carries Source spec");
   assert.ok(body.includes("Flagged constraints (unconfirmed)"), "header carries carried assumptions");

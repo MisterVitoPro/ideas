@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- The interview's spec/plan/ADR output root is now auto-detect: it checks the project's existing
+  docs layout, preferring conventional names, and falls back to `docs/` when no existing docs
+  directory is found. The resolution rule is specified in
+  `skills/interview/references/docs-location.md`. Detection is local filesystem reads only,
+  resolved silently once per session with no prompt or configuration surface.
+
+### Known limitations
+- O1: a project whose docs live under a non-conventionally-named directory (`design/`, `wiki/`,
+  `notes/`, etc.) is not auto-adopted on first use when no ideas spec exists yet under it - the
+  first write still falls back to `docs/`. The only adoption path is seeding an ideas spec under
+  `<dir>/specs`; once that spec is committed, the next run detects it and resolves to `<dir>/`
+  instead.
+
 ## [0.7.1] - 2026-07-20
 
 ### Changed

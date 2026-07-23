@@ -1,13 +1,13 @@
 ---
 name: plan
-description: Writes a canonical Contracts+ implementation plan from an approved design spec - stable task IDs, full EARS text per task, and a flat task list ready for the plan-runner run skill. Use when a spec with acceptance criteria needs docs/plans/YYYY-MM-DD-<slug>.plan.md, or the interview gate resolves Approve + generate plan.
+description: Writes a canonical Contracts+ implementation plan from an approved design spec - stable task IDs, full EARS text per task, and a flat task list ready for the plan-runner run skill. Use when a spec with acceptance criteria needs <root>/plans/YYYY-MM-DD-<slug>.plan.md, or the interview gate resolves Approve + generate plan.
 ---
 
 # ideas:plan - approved spec to canonical plan
 
-Turn an approved design spec into a canonical, agent-agnostic plan file at
-`docs/plans/YYYY-MM-DD-<slug>.plan.md`. Both the interview review gate and standalone invocation
-route into this procedure. Read
+Turn an approved design spec into a canonical, agent-agnostic plan file named
+`YYYY-MM-DD-<slug>.plan.md` under the resolved docs root. Both the interview review gate and
+standalone invocation route into this procedure. Read
 `references/task-format.md` for the field-by-field task-section contract; this file is the
 procedure only.
 
@@ -15,8 +15,14 @@ A "structured question call" means the host's batched user-input tool: `AskUserQ
 Claude Code or `request_user_input` in Codex when available. If unavailable, ask the same
 numbered options in concise prose and wait for the answer.
 
+## Root resolution
+Root resolution: the docs root is the approved spec path's parent directory's parent
+(`<root>/specs/<file>.md` yields `<root>`) - derive this from whatever spec path was actually
+handed in, even when it does not match that shape, and never default to `docs/` or run detection
+here.
+
 ## Re-entry check
-Before emission (before step 1), check whether `docs/plans/YYYY-MM-DD-<slug>.plan.md` already
+Before emission (before step 1), check whether `<root>/plans/YYYY-MM-DD-<slug>.plan.md` already
 exists for this spec. If it does, ask once via one structured question call - "Resume remaining tasks" or
 "Regenerate plan" - before any regeneration; do not silently re-run the emission procedure against
 an already-planned spec. "Resume remaining tasks" skips steps 1-9 entirely, keeps the existing
@@ -58,8 +64,9 @@ never load that file.
 9. Self-check before writing: a reference-only pattern is a criterion number with no WHEN/IF/SHALL
    sentence. If any task's acceptance-criteria block contains one:
    refuse to write the plan and name the offending task.
-10. Write the plan to docs/plans/YYYY-MM-DD-<slug>.plan.md. Commit is git-gated: when git is absent,
-    write the file and note that committing was skipped.
+10. Write the plan to `<root>/plans/YYYY-MM-DD-<slug>.plan.md`, stating that resolved path in the
+    write confirmation. Commit is git-gated: when git is absent, write the file and note that
+    committing was skipped.
 11. Completion gate: once the plan file is written and committed (or, on resume, immediately after
     the re-entry check), present exactly one structured question call before ending the run, offering, in
     order: "Execute with plan-runner" (only when `plan-runner:run` appears in the session's
@@ -85,7 +92,7 @@ never load that file.
 
     # <Title> - implementation plan
     Goal: <one sentence>
-    Source spec: docs/specs/YYYY-MM-DD-<slug>.md
+    Source spec: <resolved path to the approved spec file>
     Flagged constraints (unconfirmed): <carried items, or "None">
 
     ### Task 1: <deliverable>
@@ -102,7 +109,7 @@ never load that file.
 See `references/task-format.md` for the full field-by-field contract.
 
 ## Known gotchas
-- docs/plans/ may not exist in the target repo - create it on first write.
+- `<root>/plans/` may not exist in the target repo - create it on first write.
 - Re-emission: diffing by task title/owned-files overlap before assigning IDs matters more than
   it looks - a reordered task is still the same task, and losing that identity breaks
   the Ideas tickets skill's upsert lookup downstream.
