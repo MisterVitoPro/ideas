@@ -111,7 +111,8 @@ Technical constraints, design decisions, and non-functional requirements.
 ## Plan File Requirements
 
 Plan files that use this task format:
-- MUST be named `docs/plans/YYYY-MM-DD-<slug>.plan.md`
+- MUST be named `<root>/plans/YYYY-MM-DD-<slug>.plan.md`, where `<root>` is the resolved docs
+  root (see `docs-location.md`)
 - MUST contain a header with `Goal:` and `Source spec:` lines
 - MUST list `Flagged constraints (unconfirmed):` before task sections
 - MUST have a flat task list (no wave groupings in the plan file itself)
