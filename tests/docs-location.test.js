@@ -84,17 +84,17 @@ test("docs-location.md: docs/ fallback", () => {
 });
 
 test("interview SKILL.md: cites docs-location.md, no hardcoded write paths", () => {
-  const { body } = fm(read(INTERVIEW_SKILL));
+  const body = read(INTERVIEW_SKILL);
   assert.ok(body.includes("references/docs-location.md"), "cites docs-location.md");
   assert.ok(!body.includes("docs/specs"), "no hardcoded docs/specs write path in body");
   assert.ok(!body.includes("docs/adr"), "no hardcoded docs/adr write path in body");
 });
 
 test("plan SKILL.md: derives root from spec path, no hardcoded docs/plans write path", () => {
-  const { body } = fm(read(PLAN_SKILL));
-  assert.ok(body.includes("the docs root is the approved spec path's parent directory's parent"),
+  const whole = read(PLAN_SKILL);
+  assert.ok(whole.includes("the docs root is the approved spec path's parent directory's parent"),
     "root is derived from the spec path, not detected");
-  assert.ok(!body.includes("docs/plans"), "no hardcoded docs/plans write path in body");
+  assert.ok(!whole.includes("docs/plans"), "no hardcoded docs/plans write path anywhere in the file, frontmatter included");
 });
 
 test("plan SKILL.md: does not restate the detection algorithm", () => {

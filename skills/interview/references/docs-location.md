@@ -31,7 +31,8 @@ select the lexicographically first candidate by directory name.
 
 Runs only when the artifact pass finds no candidate. Considers only immediate children of the
 repository root - no descent into subdirectories. Select the highest-priority immediate child
-directory that contains at least one `.md` file, in the fixed priority order
+directory holding at least one `.md` file directly inside it - a `.md` file nested deeper in that
+child's own subtree does not qualify the child - in the fixed priority order
 `docs` > `documentation` > `doc` > `.docs`. The first name in that order with a qualifying
 directory present wins; lower-priority names are not evaluated once a match is found.
 

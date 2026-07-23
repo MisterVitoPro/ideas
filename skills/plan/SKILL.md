@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Writes a canonical Contracts+ implementation plan from an approved design spec - stable task IDs, full EARS text per task, and a flat task list ready for the plan-runner run skill. Use when a spec with acceptance criteria needs docs/plans/YYYY-MM-DD-<slug>.plan.md, or the interview gate resolves Approve + generate plan.
+description: Writes a canonical Contracts+ implementation plan from an approved design spec - stable task IDs, full EARS text per task, and a flat task list ready for the plan-runner run skill. Use when a spec with acceptance criteria needs <root>/plans/YYYY-MM-DD-<slug>.plan.md, or the interview gate resolves Approve + generate plan.
 ---
 
 # ideas:plan - approved spec to canonical plan
