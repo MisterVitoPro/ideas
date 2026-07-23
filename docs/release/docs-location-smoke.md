@@ -15,9 +15,9 @@ protocol is executed for a release gate.
 
 - Each case starts from a **fresh scratch repo** (or a fresh subdirectory with its own git init)
   so directory layouts do not leak between cases.
-- "Committed ideas spec" means a file carrying both content markers required by the artifact
-  pass: a `- design spec` title line AND a `## Acceptance criteria (EARS)` heading. A file merely
-  named to the `YYYY-MM-DD-<slug>.md` shape does not qualify on its own.
+- "Committed ideas spec" means a file carrying both content markers: a `- design spec` title line
+  AND a `## Acceptance criteria (EARS)` heading. A file merely named to the
+  `YYYY-MM-DD-<slug>.md` shape does not qualify on its own.
 - "Resolution" can be exercised either by running `/ideas:interview` (or `$ideas:interview` in
   Codex) end to end against the scratch repo, or by hand-tracing the rule in
   `skills/interview/references/docs-location.md` against the scratch repo's fixture layout - both
@@ -43,8 +43,8 @@ protocol is executed for a release gate.
 
 **Expected resolved root:** `design/` for both run 1 and run 2 - never `docs/`. Run 1 writes its
 spec to `design/specs/2026-07-23-<slug>.md`. Run 2's resolution is re-derived independently (no
-resolver memory across sessions) and lands on `design/` again because the artifact pass still
-finds a valid committed spec under `design/specs`. The plan skill's re-entry glob checks
+resolver memory across sessions) and lands on `design/` again because a committed ideas spec is
+still present under `design/specs`. The plan skill's re-entry glob checks
 `design/plans/*.plan.md`, not `docs/plans/*.plan.md`.
 
 **Pass/Fail condition:** PASS only if all three are true: (a) run 1's spec file appears under
@@ -58,17 +58,14 @@ check globs `docs/plans` instead of `design/plans`.
 **Setup:**
 - Fresh scratch repo. Create `documentation/` containing at least one `.md` file (e.g. a plain
   `documentation/overview.md`). Do not create `docs/`, `doc/`, or `.docs/`. Do not seed any
-  committed ideas spec anywhere (artifact pass must find nothing, so resolution falls through to
-  the conventional pass).
+  committed ideas spec anywhere.
 
 **Steps:**
 1. Invoke the interview for a new idea and let it reach the write step.
 2. Read the write report the interview prints after writing the spec.
 
-**Expected resolved root:** `documentation/` (conventional pass priority order
-`docs` > `documentation` > `doc` > `.docs`; `docs/` is absent so `documentation/` - the next
-qualifying directory with a `.md` file - wins). The spec lands at
-`documentation/specs/YYYY-MM-DD-<slug>.md`.
+**Expected resolved root:** `documentation/` - it is the only qualifying conventional directory
+present in this fixture. The spec lands at `documentation/specs/YYYY-MM-DD-<slug>.md`.
 
 **Pass/Fail condition:** PASS if the spec file is written under `documentation/specs/` and the
 write report's stated path explicitly names `documentation/specs/...` (not `docs/specs/...`).
@@ -90,11 +87,9 @@ fixture) or if the write report's stated path says `docs/` instead of `documenta
 1. Invoke the interview for a new idea and let it reach the write step.
 2. Confirm no file is ever written under `api/`.
 
-**Expected resolved root:** `docs/`, never `api/`. Two independent reasons both point here: `api/`
-never qualifies as an artifact-pass candidate in the first place (its file matches the filename
-shape only, not the content markers, so it is not a candidate to rank against `docs/` at all), and
-separately the docs-bias short-circuit would prefer `docs/` over any other candidate even if `api`
-did lexicographically precede it.
+**Expected resolved root:** `docs/`, never `api/`. `api/` holds no committed ideas spec - its file
+matches the filename shape only, not the content markers - so it is never a candidate, and `docs/`
+is the resolved root.
 
 **Pass/Fail condition:** PASS if the new spec is written under `docs/specs/` and `api/` is
 untouched (no new file, no directory created under it). FAIL if any artifact is written under
@@ -112,9 +107,9 @@ untouched (no new file, no directory created under it). FAIL if any artifact is 
 1. Invoke the interview for a new idea and let it reach the write step.
 2. Read the write report in full, including any disclosure/warning line.
 
-**Expected resolved root:** `docs/` (the fallback - neither the artifact pass nor the conventional
-pass finds a candidate, since `design/` holds no committed ideas spec and is not one of the four
-conventional names). `docs/specs`, `docs/plans`, and `docs/adr` are created on first write.
+**Expected resolved root:** `docs/` - the fallback, because this fixture offers no candidate the
+resolver can adopt: `design/` holds no committed ideas spec and is not a conventional docs
+directory name. `docs/specs`, `docs/plans`, and `docs/adr` are created on first write.
 Because `design/` is a plausible non-conventional candidate (`.md`-heavy relative to its
 siblings), the fallback-disclosure rule requires the write report to name it in one line and state
 that seeding a spec under `design/specs` switches roots on the next run.
