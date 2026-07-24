@@ -11,12 +11,12 @@ Add the shared marketplace once, then install Ideas with your client:
 
 ```bash
 # Claude Code
-claude plugin marketplace add MisterVitoPro/qa-claude-market
-claude plugin install ideas@mistervitopro-plugin-marketplace
+claude plugin marketplace add MisterVitoPro/esper
+claude plugin install ideas@esper
 
 # Codex
-codex plugin marketplace add MisterVitoPro/qa-claude-market
-codex plugin add ideas@mistervitopro-plugin-marketplace
+codex plugin marketplace add MisterVitoPro/esper
+codex plugin add ideas@esper
 ```
 
 Start a new session after installation so the bundled skills are loaded.
@@ -123,7 +123,7 @@ lag behind main:
    `.github/workflows/auto-tag.yml`, which tags any plugin.json version landing on
    main that has no tag yet.
 2. The marketplace pin in
-   [qa-claude-market](https://github.com/MisterVitoPro/qa-claude-market)
+   [esper](https://github.com/MisterVitoPro/esper)
    (`.claude-plugin/marketplace.json`: `ref` + `sha`), plus its README/description
    copy if command surfaces changed. A scheduled drift check in that repo opens an
    issue when the pin falls behind this repo's main.
