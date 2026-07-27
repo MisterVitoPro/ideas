@@ -45,11 +45,14 @@ Before you review the draft, two read-only agents run in parallel:
 - `ideas:spec-critic` (advisory): calls out the single biggest miss in the plan with 2-3
   mitigations, shown to you verbatim at the review gate.
 
-Output: a committed spec (`docs/specs/YYYY-MM-DD-<slug>.md`) with EARS acceptance criteria,
+Output: a committed spec (`<root>/specs/YYYY-MM-DD-<slug>.md`) with EARS acceptance criteria,
 an Architecture & components section (component names, responsibilities, and interface
 boundaries), a Verification strategy section (each criteria group tagged unit, integration, or
 manual), change deltas for brownfield work, mandatory Assumptions and Open questions sections, and
-optionally 1-2 MADR-lite ADRs in `docs/adr/`. The ledger itself is gitignored.
+optionally 1-2 MADR-lite ADRs in `<root>/adr/`. The `<root>` is auto-detect: it resolves to the
+project's existing docs directory (for example `documentation/` or `doc/` if that is where the
+repo already keeps its docs), falling back to `docs/` when no existing docs directory is found.
+The ledger itself is gitignored.
 
 At the review gate, "Approve + generate plan" is the recommended, first-listed option (plain
 "Approve" remains available for those who want the spec alone). Either way approval completes

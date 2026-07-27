@@ -5,7 +5,8 @@ subagents" at the completion gate - it is never loaded on the plan-runner, ticke
 (ADR-0006). It defines both execution procedures, the commit convention, the done-ness rule that
 drives resume, and failure handling. Everything here operates on tasks already parsed per
 `task-format.md`; `<slug>` is the plan filename's slug (from
-`docs/plans/YYYY-MM-DD-<slug>.plan.md`) and each task's ID is `<slug>-t<NN>`.
+`<root>/plans/YYYY-MM-DD-<slug>.plan.md`, where `<root>` is the resolved docs root - see
+`docs-location.md`) and each task's ID is `<slug>-t<NN>`.
 
 ## Commit convention
 

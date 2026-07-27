@@ -17,11 +17,13 @@ Claude Code or `request_user_input` in Codex when available. If the host has no 
 question tool, ask the same numbered options in concise prose and wait for the answer.
 
 ## Resume check
-If a `docs/specs/*-<slug>.ledger.md` exists with status other than `complete`, offer: resume or
-start over. On resume, read interview state only from the ledger, not from any prior transcript.
+Resolve the docs root once per run per `references/docs-location.md` (detection is cited there,
+never restated here) and reuse that root for every path in this skill. If a `<root>/specs/*.ledger.md`
+glob finds a ledger with status other than `complete`, offer: resume or start over. On resume, read
+interview state only from the ledger, not from any prior transcript.
 
 ## Context scan (read-only)
-Read the repo's README, docs/, recent commits, and `docs/adr/` if present, before asking anything.
+Read the repo's README, `<root>/`, recent commits, and `<root>/adr/` if present, before asking anything.
 Existing ADRs are settled ground - do not re-ask them; if the idea conflicts with one, ask
 explicitly ("ADR-NNNN chose X - supersede it?"). When re-running against an approved spec, treat
 the old spec as context and express the new one as change deltas. If repository instructions
@@ -65,7 +67,8 @@ Spend up to two extra gap waves on the sharpest gaps (batched as usual, still wi
 The review receipt at gate 2 always states the outcome - "Not probed: Lifecycle, Interfaces" naming every category left unprobed, or "all categories probed" when none remain.
 
 ## Ledger (the source of truth)
-Path: `docs/specs/YYYY-MM-DD-<slug>.ledger.md`, beside the future spec. Fixed headings:
+Path: `<root>/specs/YYYY-MM-DD-<slug>.ledger.md`, beside the future spec at
+`<root>/specs/YYYY-MM-DD-<slug>.md`. Fixed headings:
 
     # Interview Ledger: <topic>
     slug / started / scope / status: in-progress | drafting | awaiting-review | complete
@@ -77,14 +80,16 @@ An entry is `decided` only when the user actually selected or typed the answer. 
 or timed-out answers: re-ask once as plain numbered prose; if still unanswered, record `assumed`
 (with a labeled default) or `open` - a model guess is not promoted to `decided`, because the spec
 must distinguish what the user chose from what the model filled in. On first write,
-append the ledger file to the target repo's .gitignore (git-gated); a hand-edited ledger is authoritative.
+append the ledger file to the target repo's .gitignore (git-gated) as the line
+`<root>/specs/*.ledger.md`, leaving the line unchanged if an equivalent entry is already present;
+a hand-edited ledger is authoritative.
 An assumed row that touches a stated hard constraint (compliance, downtime, deadline, platform floor) is never self-adjudicated - it goes back to the user at the next gate instead of the spec resolving it alone.
 
 ## Approach checkpoint
 Present 2-3 candidate approaches with trade-offs and a recommendation in one message; the user
 picks via one structured question call; record it as `decided`. If the decision is architectural
 (structure, storage, protocol, dependency) and scope is M or L, also write at most 2 MADR-lite ADRs
-(status, context, options, decision, consequences) to `docs/adr/NNNN-<slug>.md`. ADRs are committed;
+(status, context, options, decision, consequences) to `<root>/adr/NNNN-<slug>.md`. ADRs are committed;
 the spec links them instead of duplicating them.
 Before recording it as `decided`, enumerate the chosen approach's components - names and one-line responsibilities - so the row backs the spec's Architecture & components section.
 
@@ -112,9 +117,12 @@ Auditor violations classified `feature` are presented in this same call as "unre
 Record the critic disposition in the ledger:
 chosen mitigation -> `decided`; deferred -> `open`; dismissed -> noted. Only the two Approve options end the run;
 any other choice loops back to Draft and re-audit. On approval: commit the spec and ADRs (git-gated -
-when git is absent, write files and note that committing was skipped), set the ledger status to `complete`,
+when git is absent, write files and note that committing was skipped), state the resolved `<root>` path of
+each written or committed file in that same report, set the ledger status to `complete`,
 and suggest next tools without invoking them (for example the plan-runner run skill). "Approve +
 generate plan" completes approval identically, then runs the Ideas plan skill in the same session.
+If the resolved root is the `docs/` fallback and `references/docs-location.md`'s fallback-disclosure
+condition applies, add its one extra line naming the candidate and the root-switch consequence.
 Present the receipt and the callout, not the spec body - the file is the deliverable, and echoing
 it in conversation doubles its cost.
 
@@ -122,6 +130,6 @@ it in conversation doubles its cost.
 - Structured question tools can return empty answers inside plugin skills; treat empty as unanswered, not
   as consent to the recommended option.
 - The prompt cache expires after ~5 idle minutes; batched waves keep re-writes rare.
-- docs/ may not exist in the target repo - create it on first write.
+- The resolved root may not exist in the target repo - create `<root>/specs` and `<root>/adr` on first write.
 - Native Plan Mode: interviewing and ledger writes are the plan-compatible activity; write the
   spec after plan approval.

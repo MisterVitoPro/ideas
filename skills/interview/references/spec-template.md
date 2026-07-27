@@ -36,7 +36,8 @@ other cross-cutting constraints belong here rather than scattered through Goals 
 
 ## Chosen approach
 The approach the user picked at the checkpoint, alternatives considered and why they lost.
-If an ADR was written, link `docs/adr/NNNN-<slug>.md` here instead of duplicating it.
+If an ADR was written, link `<root>/adr/NNNN-<slug>.md` here instead of duplicating it, where
+`<root>` is the resolved docs root (see `docs-location.md`).
 
 ## Architecture & components
 Component names, one-line responsibilities, and interface boundaries only - no internals, no

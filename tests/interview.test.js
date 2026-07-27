@@ -91,6 +91,6 @@ test("plan-adapter reference: no duplicate procedure text survives if the file r
   assert.ok(!a.includes("## Plan template"), "no duplicate Plan template section");
   assert.ok(!/Refuse fast:/.test(a), "no duplicated refusal-procedure text");
   assert.ok(!/Confirm-or-carry:/.test(a), "no duplicated confirm-or-carry procedure text");
-  assert.ok(!a.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"),
+  assert.ok(!a.includes("<root>/plans/YYYY-MM-DD-<slug>.plan.md"),
     "no duplicated plan-path/template contract - that now lives only in skills/plan/");
 });

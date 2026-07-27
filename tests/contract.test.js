@@ -261,7 +261,7 @@ test("ideas:plan skill: frontmatter name and trigger-crafted description", () =>
   const { frontmatter } = fm(read(PLAN_SKILL));
   assert.match(frontmatter, /^name: plan$/m);
   const desc = frontmatter.match(/^description: (.+)$/m)[1];
-  assert.ok(desc.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "description names the plan path convention");
+  assert.ok(desc.includes("<root>/plans/YYYY-MM-DD-<slug>.plan.md"), "description names the plan path convention");
   assert.ok(desc.includes("plan-runner run skill"), "description names the plan-runner consumer");
 });
 
@@ -329,7 +329,7 @@ test("ideas:plan skill: refusals, honesty carry, and task shape", () => {
   assert.ok(p.includes("<slug>-t<NN>"), "task ID scheme");
   assert.ok(p.includes("never renumbered"), "task ID stability");
   assert.ok(p.includes("reference-only pattern"), "self-check trigger");
-  assert.ok(p.includes("docs/plans/YYYY-MM-DD-<slug>.plan.md"), "plan path convention");
+  assert.ok(p.includes("<root>/plans/YYYY-MM-DD-<slug>.plan.md"), "plan path convention");
 });
 
 test("skill: elicitation floor v2 - breadth gate", () => {
