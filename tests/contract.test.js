@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT = path.join(__dirname, "..");
+const RELEASE_VERSION = "0.8.0";
 function read(relPath) {
   return fs.readFileSync(path.join(ROOT, relPath), "utf8").replace(/\r\n/g, "\n");
 }
@@ -20,7 +21,7 @@ test("plugin manifests: name, version, author", () => {
   const codex = JSON.parse(read(".codex-plugin/plugin.json"));
   assert.strictEqual(claude.name, "ideas");
   assert.strictEqual(codex.name, claude.name);
-  assert.strictEqual(claude.version, "0.8.0");
+  assert.strictEqual(claude.version, RELEASE_VERSION);
   assert.strictEqual(codex.version, claude.version);
   assert.strictEqual(claude.author.name, "MisterVitoPro");
   assert.strictEqual(codex.author.name, claude.author.name);
@@ -455,13 +456,15 @@ test("v0.8.0 release: all metadata pins stay synchronized", () => {
   const claude = JSON.parse(read(".claude-plugin/plugin.json"));
   const codex = JSON.parse(read(".codex-plugin/plugin.json"));
   const pkg = JSON.parse(read("package.json"));
-  assert.strictEqual(claude.version, "0.8.0");
-  assert.strictEqual(codex.version, "0.8.0");
-  assert.strictEqual(pkg.version, "0.8.0");
-  assert.ok(read("CHANGELOG.md").includes("## [0.8.0]"), "CHANGELOG has the 0.8.0 release heading");
+  assert.strictEqual(claude.version, RELEASE_VERSION);
+  assert.strictEqual(codex.version, RELEASE_VERSION);
+  assert.strictEqual(pkg.version, RELEASE_VERSION);
+  assert.ok(read("CHANGELOG.md").includes(`## [${RELEASE_VERSION}]`),
+    `CHANGELOG has the ${RELEASE_VERSION} release heading`);
 });
 
-test("v0.8.0 release: every skill keeps Codex-supported frontmatter and a folder-matched name", () => {
+// Regression guard: all bundled skill frontmatter already satisfied this invariant when it was added.
+test("v0.8.0 release regression guard: every skill keeps Codex-supported frontmatter and a folder-matched name", () => {
   const allowed = new Set(["name", "description", "allowed-tools", "license", "metadata"]);
   const skillRoot = path.join(ROOT, "skills");
   const skillDirs = fs.readdirSync(skillRoot, { withFileTypes: true }).filter((entry) => entry.isDirectory());

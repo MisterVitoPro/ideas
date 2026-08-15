@@ -57,8 +57,9 @@ test("release: CHANGELOG.md has a 0.8.0 entry", () => {
 
 test("release: contract-test version pin is 0.8.0", () => {
   const contractSrc = read("tests/contract.test.js");
-  assert.ok(contractSrc.includes('"0.8.0"'),
-    "tests/contract.test.js pins version 0.8.0");
+  const pin = contractSrc.match(/^const RELEASE_VERSION = "([^"]+)";$/m);
+  assert.ok(pin, "tests/contract.test.js declares a parseable RELEASE_VERSION pin");
+  assert.strictEqual(pin[1], "0.8.0", "tests/contract.test.js pins metadata checks to 0.8.0");
 });
 
 test("release: README documents the template v2 sections", () => {

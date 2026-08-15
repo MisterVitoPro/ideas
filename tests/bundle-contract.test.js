@@ -3,7 +3,9 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 
 const ROOT = path.join(__dirname, "..");
 const PLAN_SKILL = "skills/plan/SKILL.md";
@@ -183,7 +185,7 @@ test("legacy nine-field plans retain behavior across every plan-only consumer", 
     "tickets preserves legacy plan behavior");
 });
 
-test("completion waits for atomic preflight and rollback-capable bundle materialization", () => {
+test("completion waits for atomic preflight and rollback-capable bundle materialization", async (t) => {
   const plan = read(PLAN_SKILL);
   const bundle = read(ARTIFACT_BUNDLE);
   const materialization = read(MATERIALIZATION);
@@ -201,6 +203,115 @@ test("completion waits for atomic preflight and rollback-capable bundle material
   assert.match(materializer, /preflightOnly/);
   assert.match(materializer, /injectFailureAfterWrites/);
   assert.match(materializer, /const rollback = async \(\) =>/);
+
+  const { materializeBundle } = await import(pathToFileURL(path.join(ROOT, MATERIALIZER)).href);
+  const roots = [];
+  t.after(() => {
+    for (const root of roots) fs.rmSync(root, { recursive: true, force: true });
+  });
+  const temporaryRoot = () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "ideas-bundle-contract-"));
+    roots.push(root);
+    return root;
+  };
+  const target = (root, relativePath) => path.join(root, ...relativePath.split("/"));
+  const writeTarget = (root, relativePath, content) => {
+    const file = target(root, relativePath);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, content);
+    return file;
+  };
+  const makeRequest = (root, entries) => {
+    const request = {
+      schemaVersion: 1,
+      plan: "plan:bundle-contract",
+      repositoryRoot: root,
+      manifestPath: "docs/plans/bundle-contract.skeleton.json",
+      graphPath: "docs/plans/bundle-contract.graph.json",
+      entries,
+      graph: {
+        schemaVersion: 1,
+        plan: "plan:bundle-contract",
+        nodes: [],
+        edges: [],
+      },
+    };
+    return writeTarget(root, ".bundle-contract.json", `${JSON.stringify(request)}\n`);
+  };
+  const entry = (relativePath, strategyId, content = "") => ({
+    path: relativePath,
+    strategyId,
+    content,
+    connections: [],
+  });
+
+  const conflictRoot = temporaryRoot();
+  const conflictBytes = Buffer.from("export const local = true;\n");
+  const incompatibleSidecar = Buffer.from("{\"schemaVersion\":99}\n");
+  writeTarget(conflictRoot, "src/conflict.mjs", conflictBytes);
+  writeTarget(conflictRoot, "docs/plans/bundle-contract.skeleton.json", incompatibleSidecar);
+  const conflictRequest = makeRequest(conflictRoot, [
+    entry("src/conflict.mjs", "javascript-esm-mjs", "export const planned = true;\n"),
+    entry("src/would-be-created.ts", "typescript-esm-ts", "export {};\n"),
+  ]);
+  const expectedConflicts = [
+    "src/conflict.mjs",
+    "docs/plans/bundle-contract.skeleton.json",
+  ].sort();
+
+  const preflight = await materializeBundle(conflictRequest, { preflightOnly: true });
+  assert.deepEqual([...preflight.conflicts].sort(), expectedConflicts,
+    "preflightOnly aggregates source and sidecar conflicts");
+  let conflictFailure;
+  await assert.rejects(() => materializeBundle(conflictRequest), (error) => {
+    conflictFailure = error;
+    return true;
+  });
+  assert.deepEqual([...conflictFailure.conflicts].sort(), expectedConflicts,
+    "apply refuses every conflict found by the complete preflight");
+  assert.deepEqual(fs.readFileSync(target(conflictRoot, "src/conflict.mjs")), conflictBytes);
+  assert.deepEqual(
+    fs.readFileSync(target(conflictRoot, "docs/plans/bundle-contract.skeleton.json")),
+    incompatibleSidecar,
+  );
+  assert.equal(fs.existsSync(target(conflictRoot, "src/would-be-created.ts")), false);
+  assert.equal(fs.existsSync(target(conflictRoot, "docs/plans/bundle-contract.graph.json")), false);
+
+  const failureRoot = temporaryRoot();
+  const dirtyBytes = Buffer.from("unrelated local work\r\n");
+  writeTarget(failureRoot, "notes/dirty.txt", dirtyBytes);
+  const failureRequest = makeRequest(failureRoot, [
+    entry("src/one.mjs", "javascript-esm-mjs", "export {};\n"),
+    entry("src/two.ts", "typescript-esm-ts", "export {};\n"),
+  ]);
+  await assert.rejects(
+    () => materializeBundle(failureRequest, { injectFailureAfterWrites: 1 }),
+    /injected materialization apply failure/i,
+  );
+  for (const relativePath of [
+    "src/one.mjs",
+    "src/two.ts",
+    "docs/plans/bundle-contract.skeleton.json",
+    "docs/plans/bundle-contract.graph.json",
+  ]) assert.equal(fs.existsSync(target(failureRoot, relativePath)), false,
+    `${relativePath} is absent after injected-failure recovery`);
+  assert.deepEqual(fs.readFileSync(target(failureRoot, "notes/dirty.txt")), dirtyBytes);
+
+  const rollbackRoot = temporaryRoot();
+  writeTarget(rollbackRoot, "notes/dirty.txt", dirtyBytes);
+  const rollbackRequest = makeRequest(rollbackRoot, [
+    entry("src/new.mjs", "javascript-esm-mjs", "export {};\n"),
+  ]);
+  const result = await materializeBundle(rollbackRequest);
+  assert.equal(typeof result.rollback, "function");
+  assert.equal(fs.existsSync(target(rollbackRoot, "src/new.mjs")), true);
+  await result.rollback();
+  await result.rollback();
+  for (const relativePath of result.createdPaths) {
+    assert.equal(fs.existsSync(target(rollbackRoot, relativePath)), false,
+      `${relativePath} is removed by idempotent rollback`);
+  }
+  assert.deepEqual(fs.readFileSync(target(rollbackRoot, "notes/dirty.txt")), dirtyBytes);
 });
 
 test("manual smoke protocol covers the release matrix with observable results for both clients", () => {
