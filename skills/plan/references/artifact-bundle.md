@@ -36,9 +36,9 @@ One successful emission creates a coordinated bundle:
 4. the **typed graph** beside the plan at `<plan-stem>.graph.json`.
 
 Both JSON sidecars carry `schemaVersion: 1` and the canonical plan identity. The materialization
-procedure may stage or roll back these outputs, but the plan procedure considers emission complete
-only when the canonical plan, planned skeleton, skeleton manifest, and typed graph have all been
-created successfully. Emit the complete bundle before presenting the completion gate.
+procedure may stage or roll back these outputs, but emission complete only after the complete
+bundle's canonical plan, planned skeleton, skeleton manifest, and typed graph have all been created successfully. Emit the complete bundle after conflict-aggregating preflight and
+rollback-capable materialization, before presenting the completion gate.
 
 ## Plan header references
 
