@@ -61,9 +61,9 @@ never load that file.
 8. Build one normalized plan model as defined in `references/artifact-bundle.md`, including every
    task, planned path and stub contract, graph node and edge, and projected task graph slice. Fill
    every task section per `references/task-format.md`: Task ID, Owned files, Interfaces, Graph
-   context, Acceptance criteria (full EARS text, never a bare reference number), Verification
-   command(s), Non-goals, Blocked by, Constraints. Task bodies remain contracts: never function
-   bodies, test code, or shell commands; planned skeleton files are separate bundle artifacts.
+   context, Acceptance criteria (full EARS text, never a bare reference number), Verification command(s),
+   Non-goals, Blocked by, Constraints. Task bodies remain contracts: never function bodies, test code, or shell commands;
+   planned skeleton files are separate bundle artifacts.
 9. Self-check before writing: a reference-only pattern is a criterion number with no WHEN/IF/SHALL
    sentence. If any task's acceptance-criteria block contains one:
    refuse to write the plan and name the offending task.

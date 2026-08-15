@@ -30,14 +30,23 @@ jobs:
           assert f'"{claude["version"]}"' in Path('tests/contract.test.js').read_text()
           PY
 
-      - name: Install plugin validation CLIs
-        run: npm install --global @anthropic-ai/claude-code @openai/codex
+      - name: Install Claude plugin validator
+        run: npm install --global @anthropic-ai/claude-code
 
       - name: Run Claude plugin validator
         run: claude plugin validate .
 
+      - name: Install pinned Codex plugin validator
+        run: |
+          python3 -m pip install --disable-pip-version-check PyYAML==6.0.3
+          curl --fail --silent --show-error --location \
+            https://raw.githubusercontent.com/openai/codex/be6e8eac029b183056b7e4402879f15d2c85f61b/codex-rs/skills/src/assets/samples/plugin-creator/scripts/validate_plugin.py \
+            --output "$RUNNER_TEMP/validate_codex_plugin.py"
+          echo "ebda00d55d7518b127f675f062fb5c6e7a1ffdc0a99df1a55ac594400d7d3228  $RUNNER_TEMP/validate_codex_plugin.py" \
+            | sha256sum --check
+
       - name: Run Codex plugin validator
-        run: codex plugin validate .
+        run: python3 "$RUNNER_TEMP/validate_codex_plugin.py" .
 
       - name: Codex skill validation
         run: |

@@ -37,8 +37,8 @@ zero tasks passing the gate means zero issues emitted and every reason reported.
 
 ## Render issue bodies
 Each sub-issue body is rendered from the task section and the plan's flagged constraints alone -
-copy `Graph context:` verbatim from that canonical Markdown task section when present, with no
-vendor-specific fields and nothing pulled from the source spec, ledger, or sidecars. The parent
+copy `Graph context:` verbatim from that canonical Markdown task section when present, with no vendor-specific fields
+and nothing pulled from the source spec, ledger, or sidecars. The parent
 issue body lists the plan's Goal, Source spec, and one line per exported task with its sub-issue
 link (or checklist item under the sub-issue fallback).
 

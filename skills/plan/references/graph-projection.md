@@ -69,9 +69,8 @@ For each task, project its slice from the already validated normalized model:
 Render exactly one compact JSON object after `Graph context:`. It has `task`, `owned`, `consumed`,
 `produced`, `nodes`, and `edges` keys in that order. Nodes contain `id` and `type`; edges contain
 `id`, `type`, `source`, and `target`, plus `assurance` when present. Use JSON string escaping and no
-insignificant whitespace. The owned nodes, consumed nodes, produced nodes, and relevant dependency
-edges are therefore explicit, stable, deterministic, and suitable as an offline compact task
-contract.
+insignificant whitespace. The owned nodes, consumed nodes, produced nodes, and relevant dependency edges
+are therefore explicit, stable, deterministic, and suitable as an offline compact task contract.
 
 Example shape (illustrative identities only):
 
