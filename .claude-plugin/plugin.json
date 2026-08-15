@@ -1,7 +1,7 @@
 {
   "name": "ideas",
-  "version": "0.7.2",
-  "description": "Idea-to-spec pipeline: /ideas:interview turns a raw idea into an audited design spec through a scope-sized, ledger-backed interview.",
+  "version": "0.8.0",
+  "description": "Idea-to-build pipeline: create audited specs and implementation plans with source skeletons, versioned manifests, and typed dependency graphs.",
   "author": {
     "name": "MisterVitoPro"
   }

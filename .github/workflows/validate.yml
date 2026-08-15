@@ -27,9 +27,19 @@ jobs:
           assert claude['name'] == codex['name'] == package['name'] == 'ideas'
           assert claude['version'] == codex['version'] == package['version']
           assert f"## [{claude['version']}]" in Path('CHANGELOG.md').read_text()
+          assert f'"{claude["version"]}"' in Path('tests/contract.test.js').read_text()
           PY
 
-      - name: Validate Codex skill frontmatter
+      - name: Install plugin validation CLIs
+        run: npm install --global @anthropic-ai/claude-code @openai/codex
+
+      - name: Run Claude plugin validator
+        run: claude plugin validate .
+
+      - name: Run Codex plugin validator
+        run: codex plugin validate .
+
+      - name: Codex skill validation
         run: |
           python3 - <<'PY'
           from pathlib import Path

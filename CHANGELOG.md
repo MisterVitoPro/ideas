@@ -16,6 +16,28 @@
   `<dir>/specs`; once that spec is committed, the next run detects it and resolves to `<dir>/`
   instead.
 
+## [0.8.0] - 2026-08-14
+
+### Added
+- New plans now generate a default four-artifact bundle: the canonical plan, source skeleton,
+  adjacent versioned skeleton manifest, and typed dependency graph. Each task includes its own
+  self-contained `Graph context` projection for downstream consumers.
+- Cross-client release coverage now exercises the bundle through both Claude Code `/ideas:plan`
+  and Codex `$ideas:plan`, with the complete Node suite, both plugin validators, the Codex skill
+  validator, and the manual smoke protocol as release gates.
+
+### Changed
+- Bundle materialization uses complete preflight followed by an atomic apply. All conflicts are
+  reported before mutation, and a mid-apply failure triggers rollback of every path created by the
+  run while preserving every pre-existing path byte-for-byte.
+- Verified versus declarative assurance is explicit: supported existing files are verified only
+  when a bounded built-in strategy proves the planned node and connections; mixed or unsupported
+  content remains declarative/unverified and opaque instead of being rewritten or over-claimed.
+- All plan-only execution and projection backends now ignore the adjacent sidecars safely:
+  plan-runner execution, inline execution, subagent execution, and GitHub tickets. Legacy-plan and
+  plan-only compatibility remain intact when `Graph context`, the manifest, and the graph are
+  absent.
+
 ## [0.7.1] - 2026-07-20
 
 ### Changed
