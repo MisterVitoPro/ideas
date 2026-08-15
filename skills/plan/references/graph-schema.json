@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mistervitopro.dev/ideas/plan-graph-v1.schema.json",
+  "title": "Ideas plan dependency graph v1",
+  "type": "object",
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "plan": { "type": "string" },
+    "nodes": { "type": "array" },
+    "edges": { "type": "array" }
+  },
+  "required": ["schemaVersion", "plan", "nodes", "edges"],
+  "additionalProperties": true
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mistervitopro.dev/ideas/plan-skeleton-v1.schema.json",
+  "title": "Ideas plan skeleton manifest v1",
+  "type": "object",
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "plan": { "type": "string" },
+    "entries": { "type": "array" }
+  },
+  "required": ["schemaVersion", "plan", "entries"],
+  "additionalProperties": true
+}
