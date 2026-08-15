@@ -67,7 +67,7 @@ never load that file.
 9. Self-check before writing: a reference-only pattern is a criterion number with no WHEN/IF/SHALL
    sentence. If any task's acceptance-criteria block contains one:
    refuse to write the plan and name the offending task.
-10. Emit the complete bundle directly from that model per `references/artifact-bundle.md`: the
+10. Emit the complete bundle before the completion gate, directly from that model per `references/artifact-bundle.md`: the
     canonical plan at `<root>/plans/YYYY-MM-DD-<slug>.plan.md`, adjacent version-1 manifest and
     graph sidecars, and planned skeleton. Do not infer one artifact from another. State the resolved
     plan path in the confirmation. Commit is git-gated: when git is absent, write the bundle and
