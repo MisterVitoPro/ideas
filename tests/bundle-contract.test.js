@@ -107,6 +107,17 @@ test("manifest and graph preserve the same honest assurance distinctions", () =>
   const expected = ["syntactically-verified", "declarative-unverified"];
   const graphAssurance = graph.$defs.edge.properties.assurance;
   const manifestEntry = manifest.$defs.entry;
+  const fixturePaths = ["supported", "mixed", "unsupported"]
+    .flatMap((category) => fixtures[category])
+    .flatMap((fixture) => fixture.paths);
+  const fixtureAssurances = new Set([
+    fixtures.opaqueFallback.connectionAssurance,
+    ...fixturePaths.map((entry) => entry.expected.assurance),
+    ...fixturePaths.flatMap((entry) => entry.connections.map((connection) => connection.assurance)),
+  ]);
+  const assuredEdgeTypes = graph.$defs.edge.allOf
+    .filter((candidate) => candidate.then?.required?.includes("assurance"))
+    .map((candidate) => candidate.if?.properties?.type?.const);
 
   assert.deepEqual([...graphAssurance.enum].sort(), [...expected].sort(),
     "graph edges use the two assurance levels");
@@ -116,11 +127,19 @@ test("manifest and graph preserve the same honest assurance distinctions", () =>
     "manifest entries use the graph-v1 assurance vocabulary");
   assert.ok(manifestEntry.required.includes("assurance"),
     "every classified manifest entry reports its assurance");
-  assert.equal(fixtures.opaqueFallback.connectionAssurance, "declarative-unverified");
-  for (const edgeType of ["imports", "exports", "produces", "consumes"]) {
-    const rule = graph.$defs.edge.allOf.find((candidate) =>
-      candidate.if?.properties?.type?.const === edgeType);
-    assert.ok(rule?.then?.required?.includes("assurance"), `${edgeType} requires assurance`);
+  assert.deepEqual([...fixtureAssurances].sort(), [...expected].sort(),
+    "fixtures use exactly the manifest and graph assurance vocabulary");
+  assert.deepEqual(assuredEdgeTypes.sort(), ["imports", "exports", "produces", "consumes"].sort(),
+    "all connection edge types, and only connection edge types, require assurance");
+  for (const entry of fixturePaths) {
+    assert.ok(expected.includes(entry.expected.assurance),
+      `${entry.path} classification uses a declared assurance`);
+    for (const connection of entry.connections) {
+      assert.ok(assuredEdgeTypes.includes(connection.type),
+        `${entry.path} ${connection.type} is an assured edge type`);
+      assert.ok(expected.includes(connection.assurance),
+        `${entry.path} ${connection.type} uses a declared assurance`);
+    }
   }
 });
 

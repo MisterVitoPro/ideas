@@ -3,6 +3,7 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const fsPromises = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
@@ -190,11 +191,37 @@ test("an injected mid-apply failure restores source paths and removes new sideca
     entry("native/existing.rs", null, ""),
   ]);
   const { materializeBundle } = await loadMaterializer();
+  const copiedFiles = [];
+  const originalCopyFile = fsPromises.copyFile;
+  fsPromises.copyFile = async (...args) => {
+    const result = await originalCopyFile(...args);
+    const target = path.resolve(args[1]);
+    if (target.startsWith(`${root}${path.sep}`)) {
+      copiedFiles.push({
+        path: path.relative(root, target).split(path.sep).join("/"),
+        bytes: await fsPromises.readFile(target),
+      });
+    }
+    return result;
+  };
 
-  await assert.rejects(
-    () => materializeBundle(requestPath, { injectFailureAfterWrites: 1 }),
-    /inject|materializ|apply/i,
-  );
+  let failure;
+  try {
+    await assert.rejects(
+      () => materializeBundle(requestPath, { injectFailureAfterWrites: 1 }),
+      (error) => {
+        failure = error;
+        return true;
+      },
+    );
+  } finally {
+    fsPromises.copyFile = originalCopyFile;
+  }
+  assert.match(failure.cause?.message ?? "", /injected materialization apply failure after 1 writes/i);
+  assert.deepEqual(copiedFiles, [{
+    path: "src/one.mjs",
+    bytes: Buffer.from("export {};\n"),
+  }]);
   for (const relativePath of [
     "src/one.mjs",
     "src/two.ts",

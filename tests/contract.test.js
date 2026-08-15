@@ -20,7 +20,7 @@ test("plugin manifests: name, version, author", () => {
   const codex = JSON.parse(read(".codex-plugin/plugin.json"));
   assert.strictEqual(claude.name, "ideas");
   assert.strictEqual(codex.name, claude.name);
-  assert.strictEqual(claude.version, "0.7.1");
+  assert.strictEqual(claude.version, "0.8.0");
   assert.strictEqual(codex.version, claude.version);
   assert.strictEqual(claude.author.name, "MisterVitoPro");
   assert.strictEqual(codex.author.name, claude.author.name);
