@@ -526,7 +526,8 @@ test("CI runs the complete suite, both plugin validators, and the Codex skill va
   const workflow = read(".github/workflows/validate.yml");
   assert.ok(workflow.includes("node --test tests/*.test.js"), "CI runs the complete Node suite");
   assert.match(workflow, /claude plugin validate \./, "CI runs the Claude plugin validator");
-  assert.match(workflow, /codex plugin validate \./, "CI runs the Codex plugin validator");
+  assert.match(workflow, /python3\s+["']?\$RUNNER_TEMP\/validate_codex_plugin\.py["']?\s+\./,
+    "CI runs the pinned Codex plugin validator");
   assert.match(workflow, /codex[\s\S]{0,80}skill[\s\S]{0,80}valid/i,
     "CI runs the Codex skill validator");
   assert.match(workflow, /claude\[['"]version['"]\][\s\S]{0,120}codex\[['"]version['"]\][\s\S]{0,120}package\[['"]version['"]\]/,

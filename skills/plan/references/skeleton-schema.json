@@ -43,11 +43,19 @@
             "verified-compatible",
             "opaque-preserved"
           ]
+        },
+        "assurance": {
+          "type": "string",
+          "enum": [
+            "syntactically-verified",
+            "declarative-unverified"
+          ]
         }
       },
       "required": [
         "path",
-        "classification"
+        "classification",
+        "assurance"
       ],
       "additionalProperties": false
     }
