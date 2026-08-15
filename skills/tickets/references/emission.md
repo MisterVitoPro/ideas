@@ -14,13 +14,20 @@ fails any check is held back with a one-line reason; it is never exported degrad
   reference number instead of full EARS text (already refused earlier, at plan-write time, but
   hand-edited plans reach the Ideas tickets skill unchecked), or prose pointing at "the spec" or "the
   ledger" for meaning.
+- **Graph context**: for a new-format task, `Graph context:` is additive and must contain its owned,
+  consumed, and produced identities plus the relevant dependency edges in the task section itself.
+  It does not replace the self-contained, full EARS acceptance text, or file-isolated checks. An
+  existing nine-field plan without this additive field remains valid and follows legacy behavior.
+  A `Graph context:` value that points to a graph or manifest sidecar fails the self-contained
+  check and is held back; never dereference the referenced sidecar.
 - **File-isolated**: `Owned files` is present, non-empty, and disjoint from every other exported
   task's `Owned files`. Compute this as a single pass over the whole task set - two tasks that
   both claim a path fail together, each with a reason naming the other's task ID and the
   overlapping path.
-- **Fully specified**: all nine task-format fields are present and non-blank, `Blocked by` names
-  only task IDs that exist in this plan (a dangling ID fails the gate), and no field contains an
-  unfilled placeholder token (e.g. a literal `<...>` left from the template).
+- **Fully specified**: all ten new-format task fields are present and non-blank (or all nine fields
+  for an existing nine-field plan), `Blocked by` names only task IDs that exist in this plan (a
+  dangling ID fails the gate), and no field contains an unfilled placeholder token (e.g. a literal
+  `<...>` left from the template).
 
 One-line reason format: `<task ID> (<title>): held back - <check> - <specific cause>`. Example:
 `plan-stage-t04 (tickets skill): held back - file-isolated - Owned files overlaps plan-stage-t05

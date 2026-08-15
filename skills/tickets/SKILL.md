@@ -26,7 +26,8 @@ The Ideas tickets skill performs GitHub operations using only the gh CLI, storin
 ## Read plan
 Parse the plan file's header (Goal, Source spec, Flagged constraints) and every `### Task N:`
 section using the format pinned in `../plan/references/task-format.md`. The slug comes from
-the plan filename (`YYYY-MM-DD-<slug>.plan.md`).
+the plan filename (`YYYY-MM-DD-<slug>.plan.md`). Read only the plan file for projection.
+Never dereference a graph sidecar or manifest sidecar.
 
 ## Definition-of-Ready gate
 Full rules, the upsert lookup procedure, the partial-failure report format, and the sub-issue
@@ -36,9 +37,10 @@ zero tasks passing the gate means zero issues emitted and every reason reported.
 
 ## Render issue bodies
 Each sub-issue body is rendered from the task section and the plan's flagged constraints alone -
-no vendor-specific fields, nothing pulled from the source spec or ledger. The parent issue body
-lists the plan's Goal, Source spec, and one line per exported task with its sub-issue link (or
-checklist item under the sub-issue fallback).
+copy `Graph context:` verbatim from that canonical Markdown task section when present, with no
+vendor-specific fields and nothing pulled from the source spec, ledger, or sidecars. The parent
+issue body lists the plan's Goal, Source spec, and one line per exported task with its sub-issue
+link (or checklist item under the sub-issue fallback).
 
 ## Create parent tracking issue and sub-issues
 Create one parent tracking issue and one sub-issue per exported task. Every sub-issue is labeled
