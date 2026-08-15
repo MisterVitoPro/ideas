@@ -16,6 +16,7 @@ function fm(text) {
 
 const SKILL = "skills/plan/SKILL.md";
 const TASK_FORMAT = "skills/plan/references/task-format.md";
+const ARTIFACT_BUNDLE = "skills/plan/references/artifact-bundle.md";
 
 test("plan skill: frontmatter names the command", () => {
   const { frontmatter } = fm(read(SKILL));
@@ -131,4 +132,80 @@ test("task-format reference: field lines are pinned verbatim", () => {
 test("task-format reference: task-ID scheme is <slug>-tNN", () => {
   const t = read(TASK_FORMAT);
   assert.ok(/<slug>-t<?NN>?/i.test(t), "task-ID scheme documented");
+});
+
+// --- plan-native artifact-bundle walking skeleton ---
+
+test("plan artifact bundle: one normalized model emits the complete bundle before the completion gate", () => {
+  const skill = fm(read(SKILL)).body;
+  const bundle = read(ARTIFACT_BUNDLE);
+  assert.ok(skill.includes("references/artifact-bundle.md"), "plan procedure links the bundle contract");
+  assert.match(bundle, /one normalized (plan )?model/i, "one normalized plan model is authoritative");
+  for (const artifact of ["canonical plan", "planned skeleton", "skeleton manifest", "typed graph"]) {
+    assert.ok(bundle.toLowerCase().includes(artifact), `bundle includes ${artifact}`);
+  }
+  assert.match(bundle, /before (presenting )?the completion gate/i, "complete bundle precedes completion gate");
+});
+
+test("plan artifact bundle: adjacent version-1 sidecars are named in plan headers", () => {
+  const bundle = read(ARTIFACT_BUNDLE);
+  assert.match(bundle, /<plan-stem>\.skeleton\.json/, "adjacent skeleton-manifest filename");
+  assert.match(bundle, /<plan-stem>\.graph\.json/, "adjacent dependency-graph filename");
+  assert.match(bundle, /(?:schemaVersion|schema_version|version)[^\n]*1/i, "JSON sidecars use version 1");
+  assert.ok(bundle.includes("Skeleton manifest:"), "plan header references skeleton manifest");
+  assert.ok(bundle.includes("Dependency graph:"), "plan header references dependency graph");
+});
+
+test("task-format reference: Graph context follows Interfaces in the ten-field compatible contract", () => {
+  const t = read(TASK_FORMAT);
+  const orderedFields = [
+    "Task ID:", "Owned files:", "Interfaces:", "Graph context:",
+    "Acceptance criteria:", "Verification:", "Non-goals:", "Blocked by:", "Constraints:",
+  ];
+  let previous = -1;
+  for (const field of orderedFields) {
+    const current = t.indexOf(field);
+    assert.ok(current > previous, `${field} appears once in canonical field order`);
+    previous = current;
+  }
+  assert.match(t, /ten-field|10-field/i, "updated contract is explicitly ten-field");
+  assert.match(t, /stable task IDs/i, "stable task IDs remain guaranteed");
+  assert.match(t, /flat (?:task )?(?:list|ordering)/i, "flat ordering remains guaranteed");
+  assert.match(t, /file isolation/i, "file isolation remains guaranteed");
+  assert.match(t, /full EARS text/i, "full EARS text remains guaranteed");
+  assert.match(t, /plan-runner[^\n]*(?:compatible|compatibility|unchanged)/i,
+    "plan-runner compatibility remains guaranteed");
+});
+
+test("plan artifact bundle: every rendered task receives a self-contained graph slice", () => {
+  const bundle = read(ARTIFACT_BUNDLE);
+  assert.match(bundle, /self-contained[^\n]*graph slice|graph slice[^\n]*self-contained/i,
+    "task graph slice is self-contained");
+  for (const identity of ["owned", "consumed", "produced"]) {
+    assert.match(bundle, new RegExp(`\\b${identity}\\b`, "i"), `slice includes ${identity} nodes`);
+  }
+  assert.match(bundle, /relevant dependency edges/i, "slice includes relevant dependency edges");
+  assert.ok(bundle.includes("Graph context:"), "slice is rendered in Graph context");
+});
+
+test("plan artifact bundle: every artifact and task slice is rendered directly from the normalized model", () => {
+  const bundle = read(ARTIFACT_BUNDLE);
+  for (const artifact of ["plan", "manifest", "graph", "skeleton", "task slice"]) {
+    assert.match(bundle, new RegExp(`${artifact}s?[^\\n]*(?:derive|render|emit)[^\\n]*normalized model|normalized model[^\\n]*(?:derive|render|emit)[^\\n]*${artifact}s?`, "i"),
+      `${artifact} derives from the normalized model`);
+  }
+  assert.match(bundle, /(?:must not|never|rather than)[^\n]*(?:infer|parse|read back)[^\n]*written artifact/i,
+    "written artifacts are not used to infer other artifacts");
+});
+
+test("plan artifact bundle: re-entry preserves the resume-or-regenerate gate without silent regeneration", () => {
+  const skill = fm(read(SKILL)).body;
+  const bundle = read(ARTIFACT_BUNDLE);
+  assert.match(skill, /Resume remaining tasks/);
+  assert.match(skill, /Regenerate plan/);
+  assert.match(bundle, /resume[^\n/]*(?:or|\/)[^\n]*regenerate|resume[^\n]*regenerate/i,
+    "bundle re-entry preserves both choices");
+  assert.match(bundle, /(?:existing|already)[^\n]*plan bundle/i, "re-entry recognizes an existing bundle");
+  assert.match(bundle, /(?:shall not|must not|never|do not)[^\n]*silently[^\n]*regenerate/i,
+    "existing bundles are never silently regenerated");
 });
