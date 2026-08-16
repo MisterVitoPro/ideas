@@ -12,6 +12,7 @@ Every task section in a plan file SHALL follow this structure with field lines i
 Task ID: <slug>-t<NN>
 Owned files: <comma-separated paths>
 Interfaces: <producer/consumer contracts>
+Graph context: <self-contained owned, consumed, produced nodes and relevant dependency edges>
 Acceptance criteria:
 - <criterion text>
 Verification: <command or procedure>
@@ -47,6 +48,15 @@ Specification of what this task consumes from previous tasks and produces for su
 - References other tasks by Task ID when establishing dependencies
 - **Example:** `Interfaces: consumes task-format.md (Task 1); produces plan-generation procedure (Task 2)`
 - Required: Yes
+
+### `Graph context: <task graph slice>`
+Self-contained projection of the typed dependency graph for this task.
+- Lists the task's owned nodes and every consumed and produced node by stable identity
+- Includes the relevant dependency edges connecting those nodes, with enough endpoint and type
+  information to understand the slice without reading the graph sidecar
+- Is rendered from the same normalized plan model as the complete graph, never reconstructed from
+  the Markdown plan
+- Required: Yes for plan-native bundles; legacy plans remain valid without it
 
 ### `Acceptance criteria:`
 EARS-format (Event-Action-Result Schema) acceptance criteria specifying testable outcomes.
@@ -99,14 +109,17 @@ Technical constraints, design decisions, and non-functional requirements.
 ## Validation Rules
 
 1. **Field Order**: Fields MUST appear in the order specified above.
-2. **Field Completeness**: All nine fields MUST be present in every task.
+2. **Field Completeness**: All ten fields (the task heading plus nine labeled fields) MUST be
+   present in every task emitted as part of a plan-native bundle.
 3. **EARS Format**: Acceptance criteria MUST use proper EARS syntax (`WHEN`, `IF`, `THEN`, `SHALL`/`SHALL NOT`).
 4. **Reference Criteria Rejection**: Any acceptance criterion without WHEN/IF prefix SHALL cause the plan write to refuse, naming the task and criterion number.
 5. **Task ID Stability**: Once a Task ID is assigned in a plan, it SHALL NOT change in subsequent plan edits or re-emissions.
 6. **Task ID Scheme**: Format MUST be `<slug>-t<NN>` where `<NN>` is zero-padded (t01, t02, ..., t99).
 7. **Walking Skeleton**: When a plan contains two or more tasks, Task 1 SHALL own all critical/hotspot files and all other tasks SHALL carry at least one blocked-by edge.
 8. **File Isolation**: Each task's owned files SHALL be disjoint from all other tasks' owned files.
-9. **No Code Bodies**: Task sections contain specification only; executors write the implementation code.
+9. **Graph Slice**: `Graph context:` SHALL follow `Interfaces:` and include owned, consumed, and
+   produced nodes plus relevant dependency edges.
+10. **No Code Bodies**: Task sections contain specification only; executors write the implementation code.
 
 ## Plan File Requirements
 
@@ -115,12 +128,16 @@ Plan files that use this task format:
   root (see `docs-location.md`)
 - MUST contain a header with `Goal:` and `Source spec:` lines
 - MUST list `Flagged constraints (unconfirmed):` before task sections
+- MUST reference adjacent version-1 sidecars with `Skeleton manifest:` and `Dependency graph:`
+  header fields when emitted as a plan-native bundle
 - MUST have a flat task list (no wave groupings in the plan file itself)
 - MAY be accepted by `plan-runner:run` unchanged
 
 ## Compatibility Notes
 
-This format is a strict superset of plan-runner's expected fields:
+This ten-field format is a strict superset of plan-runner's expected fields and remains compatible
+with the plan-runner run skill unchanged:
 - **From plan-runner**: Owned files, Interfaces, Acceptance criteria, Constraints
-- **Added fields**: Task N heading, Task ID, Verification, Non-goals, Blocked by
+- **Added fields**: Task N heading, Task ID, Graph context, Verification, Non-goals, Blocked by
 - New fields are additive only and SHALL NOT remove or replace existing fields.
+- Stable task IDs, flat ordering, file isolation, and full EARS text remain mandatory.

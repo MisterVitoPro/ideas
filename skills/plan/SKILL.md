@@ -9,7 +9,8 @@ Turn an approved design spec into a canonical, agent-agnostic plan file named
 `YYYY-MM-DD-<slug>.plan.md` under the resolved docs root. Both the interview review gate and
 standalone invocation route into this procedure. Read
 `references/task-format.md` for the field-by-field task-section contract; this file is the
-procedure only.
+procedure only. Read `references/artifact-bundle.md` for the normalized model, artifact names,
+emission boundary, and task graph-slice contract.
 
 A "structured question call" means the host's batched user-input tool: `AskUserQuestion` in
 Claude Code or `request_user_input` in Codex when available. If unavailable, ask the same
@@ -23,10 +24,11 @@ here.
 
 ## Re-entry check
 Before emission (before step 1), check whether `<root>/plans/YYYY-MM-DD-<slug>.plan.md` already
-exists for this spec. If it does, ask once via one structured question call - "Resume remaining tasks" or
-"Regenerate plan" - before any regeneration; do not silently re-run the emission procedure against
-an already-planned spec. "Resume remaining tasks" skips steps 1-9 entirely, keeps the existing
-plan file and its task IDs untouched, and proceeds straight to the completion gate below.
+exists for this spec. Treat that plan and any adjacent sidecars as an existing plan bundle. Ask
+once via one structured question call - "Resume remaining tasks" or "Regenerate plan" - before
+any regeneration; do not silently re-run emission against an already-planned spec. "Resume
+remaining tasks" skips steps 1-10 entirely, keeps the existing bundle and task IDs untouched, and
+proceeds straight to the completion gate below.
 "Regenerate plan" proceeds through the full procedure, matching existing tasks by title and owned
 files (step 5) so their IDs carry forward. Either choice still ends at the completion gate -
 resuming does not by itself execute anything. Per-task done-ness (which tasks are already
@@ -56,18 +58,21 @@ never load that file.
 7. Emit a flat ordered task list - no wave groupings. Waving stays plan-runner's analyzer's job;
    two waving algorithms fighting over one plan is worse than either alone. The file SHALL be
    accepted by the plan-runner run skill unchanged.
-8. Fill every task section per `references/task-format.md`: Task ID, Owned files, Interfaces,
-   Acceptance criteria (full EARS text, never a bare reference number - plan-runner's agents only
-   ever see the plan file, not the source spec), Verification command(s), Non-goals, Blocked by,
-   Constraints. Tasks are contracts: never function bodies, test code, or shell commands -
-   executors write the code.
+8. Build one normalized plan model as defined in `references/artifact-bundle.md`, including every
+   task, planned path and stub contract, graph node and edge, and projected task graph slice. Fill
+   every task section per `references/task-format.md`: Task ID, Owned files, Interfaces, Graph
+   context, Acceptance criteria (full EARS text, never a bare reference number), Verification command(s),
+   Non-goals, Blocked by, Constraints. Task bodies remain contracts: never function bodies, test code, or shell commands;
+   planned skeleton files are separate bundle artifacts.
 9. Self-check before writing: a reference-only pattern is a criterion number with no WHEN/IF/SHALL
    sentence. If any task's acceptance-criteria block contains one:
    refuse to write the plan and name the offending task.
-10. Write the plan to `<root>/plans/YYYY-MM-DD-<slug>.plan.md`, stating that resolved path in the
-    write confirmation. Commit is git-gated: when git is absent, write the file and note that
-    committing was skipped.
-11. Completion gate: once the plan file is written and committed (or, on resume, immediately after
+10. Emit the complete bundle before the completion gate, directly from that model per `references/artifact-bundle.md`: the
+    canonical plan at `<root>/plans/YYYY-MM-DD-<slug>.plan.md`, adjacent version-1 manifest and
+    graph sidecars, and planned skeleton. Do not infer one artifact from another. State the resolved
+    plan path in the confirmation. Commit is git-gated: when git is absent, write the bundle and
+    note that committing was skipped.
+11. Completion gate: once the complete bundle is written and committed (or, on resume, immediately after
     the re-entry check), present exactly one structured question call before ending the run, offering, in
     order: "Execute with plan-runner" (only when `plan-runner:run` appears in the session's
     available-skills list - detection is that skill-availability check only, never filesystem
@@ -94,11 +99,14 @@ never load that file.
     Goal: <one sentence>
     Source spec: <resolved path to the approved spec file>
     Flagged constraints (unconfirmed): <carried items, or "None">
+    Skeleton manifest: <adjacent <plan-stem>.skeleton.json path>
+    Dependency graph: <adjacent <plan-stem>.graph.json path>
 
     ### Task 1: <deliverable>
     Task ID: <slug>-t01
     Owned files: <exact paths>
     Interfaces: consumes <...>; produces <...>
+    Graph context: owns <nodes>; consumes <nodes>; produces <nodes>; edges <relevant dependencies>
     Acceptance criteria:
     - WHEN <trigger> THE SYSTEM SHALL <behavior>
     Verification: <command or procedure>

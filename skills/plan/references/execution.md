@@ -8,6 +8,13 @@ drives resume, and failure handling. Everything here operates on tasks already p
 `<root>/plans/YYYY-MM-DD-<slug>.plan.md`, where `<root>` is the resolved docs root - see
 `docs-location.md`) and each task's ID is `<slug>-t<NN>`.
 
+Both execution modes build their self-contained task brief from the Markdown task section. For a
+new-format task, copy `Graph context:` verbatim so the brief carries its owned, consumed, and
+produced node identities plus the relevant dependency edge identities. Do not dereference a graph sidecar
+or manifest sidecar during execution; the projected slice in the task section
+is complete. An existing nine-field plan without `Graph context:` remains valid without migration
+or sidecars, and inline and subagent execution retain their unchanged pre-feature behavior.
+
 ## Commit convention
 
 Every execution commit uses the message `exec(<slug>-tNN): <title>`, where `<title>` is the task's
@@ -40,11 +47,14 @@ Implement tasks one at a time in blocked-by order (a topological order of the `B
 where the plan is already ordered, plan order suffices). For each task:
 
 1. Skip it if done-ness above already marks it done (resume).
-2. Implement its `Owned files` to satisfy its full acceptance criteria, honoring its Constraints
+2. Construct the task brief from its complete Markdown task section. Retain `Graph context:`
+   verbatim, including the owned, consumed, and produced node identities and relevant dependency
+   edge identities; for a legacy task, its absence does not change the brief.
+3. Implement its `Owned files` to satisfy its full acceptance criteria, honoring its Constraints
    and Non-goals - the task section is self-contained; do not consult the source spec.
-3. Run its Verification command. If it passes and git is present, commit that task's `Owned files`
+4. Run its Verification command. If it passes and git is present, commit that task's `Owned files`
    with `exec(<slug>-tNN): <title>`. If git is absent, note the skipped commit and continue.
-4. If Verification fails (or implementation cannot complete), the task has failed - go to Failure
+5. If Verification fails (or implementation cannot complete), the task has failed - go to Failure
    handling. In inline mode "finish the current wave" means finish the current task only; do not
    start the next task before handling the failure.
 
@@ -57,8 +67,11 @@ disjointness is exactly what lets each task's files be staged and committed inde
 cross-contamination. Waves run in order; a wave starts only after the prior wave's commits land.
 
 Within a wave, dispatch one general-purpose agent per task (up to the wave's task count), each told
-to implement only its own `Owned files` against its acceptance criteria and Constraints. Do not add
-verifier agents - per-wave verification depth is plan-runner's job, deliberately not cloned here.
+to implement only its own `Owned files` against its acceptance criteria and Constraints. Each
+dispatch is a self-contained task brief copied from the Markdown task section and retains
+`Graph context:` verbatim: owned, consumed, and produced node identities plus relevant dependency
+edge identities. Do not add verifier agents - per-wave verification depth is plan-runner's job,
+deliberately not cloned here.
 When every agent in the wave has returned, for each task whose agent completed: run that task's
 Verification command, and if it passes (and git is present) commit that task's `Owned files`
 individually with `exec(<slug>-tNN): <title>` - one commit per task, never a combined wave commit.

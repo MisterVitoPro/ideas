@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT = path.join(__dirname, "..");
+const RELEASE_VERSION = "0.8.0";
 function read(relPath) {
   return fs.readFileSync(path.join(ROOT, relPath), "utf8").replace(/\r\n/g, "\n");
 }
@@ -20,7 +21,7 @@ test("plugin manifests: name, version, author", () => {
   const codex = JSON.parse(read(".codex-plugin/plugin.json"));
   assert.strictEqual(claude.name, "ideas");
   assert.strictEqual(codex.name, claude.name);
-  assert.strictEqual(claude.version, "0.7.1");
+  assert.strictEqual(claude.version, RELEASE_VERSION);
   assert.strictEqual(codex.version, claude.version);
   assert.strictEqual(claude.author.name, "MisterVitoPro");
   assert.strictEqual(codex.author.name, claude.author.name);
@@ -447,4 +448,88 @@ test("spec-auditor: classification contract and confirm-or-remove", () => {
   assert.ok(
     body.includes('"suggested_fix": "demote to Assumptions | add to Open questions | confirm-or-remove"'),
     "confirm-or-remove suggested_fix option");
+});
+
+// --- v0.8.0 plan skeleton + dependency graph release invariants ---
+
+test("v0.8.0 release: all metadata pins stay synchronized", () => {
+  const claude = JSON.parse(read(".claude-plugin/plugin.json"));
+  const codex = JSON.parse(read(".codex-plugin/plugin.json"));
+  const pkg = JSON.parse(read("package.json"));
+  assert.strictEqual(claude.version, RELEASE_VERSION);
+  assert.strictEqual(codex.version, RELEASE_VERSION);
+  assert.strictEqual(pkg.version, RELEASE_VERSION);
+  assert.ok(read("CHANGELOG.md").includes(`## [${RELEASE_VERSION}]`),
+    `CHANGELOG has the ${RELEASE_VERSION} release heading`);
+});
+
+// Regression guard: all bundled skill frontmatter already satisfied this invariant when it was added.
+test("v0.8.0 release regression guard: every skill keeps Codex-supported frontmatter and a folder-matched name", () => {
+  const allowed = new Set(["name", "description", "allowed-tools", "license", "metadata"]);
+  const skillRoot = path.join(ROOT, "skills");
+  const skillDirs = fs.readdirSync(skillRoot, { withFileTypes: true }).filter((entry) => entry.isDirectory());
+  assert.ok(skillDirs.length > 0, "at least one bundled skill is present");
+
+  for (const entry of skillDirs) {
+    const rel = path.posix.join("skills", entry.name, "SKILL.md");
+    const { frontmatter } = fm(read(rel));
+    const keys = frontmatter.split("\n")
+      .filter((line) => line && !/^\s/.test(line) && line.includes(":"))
+      .map((line) => line.split(":", 1)[0]);
+    assert.ok(keys.every((key) => allowed.has(key)), `${rel} uses only Codex-supported frontmatter`);
+    assert.match(frontmatter, new RegExp(`^name: ${entry.name}$`, "m"), `${rel} name matches its folder`);
+  }
+});
+
+test("v0.8.0 release: both plugin manifests describe skeleton and graph generation", () => {
+  const claude = JSON.parse(read(".claude-plugin/plugin.json"));
+  const codex = JSON.parse(read(".codex-plugin/plugin.json"));
+  assert.strictEqual(codex.name, claude.name, "plugin identity agrees across clients");
+  for (const [client, manifest] of [["Claude", claude], ["Codex", codex]]) {
+    assert.match(manifest.description, /skeleton/i, `${client} description names skeleton generation`);
+    assert.match(manifest.description, /(dependency )?graph/i, `${client} description names graph generation`);
+  }
+});
+
+test("README documents the default plan bundle and both client invocation forms", () => {
+  const readme = read("README.md");
+  assert.match(readme, /source skeleton/i, "README explains source skeleton creation");
+  assert.match(readme, /adjacent[\s\S]{0,160}(versioned )?manifest/i,
+    "README explains the adjacent versioned manifest");
+  assert.match(readme, /adjacent[\s\S]{0,200}(dependency )?graph/i,
+    "README explains the adjacent graph");
+  assert.match(readme, /per-task[\s\S]{0,120}graph context/i,
+    "README explains self-contained per-task graph context");
+  assert.ok(readme.includes("/ideas:plan") && readme.includes("$ideas:plan"),
+    "README shows Claude and Codex plan invocation forms");
+});
+
+test("CHANGELOG 0.8.0 records bundle behavior, safety, assurance, compatibility, and consumers", () => {
+  const changelog = read("CHANGELOG.md");
+  const release = changelog.split("## [0.8.0]")[1]?.split(/\n## \[/)[0] || "";
+  assert.ok(release, "0.8.0 release notes exist");
+  for (const [label, pattern] of [
+    ["default bundle generation", /default[\s\S]{0,120}(bundle|skeleton)/i],
+    ["atomic conflict and rollback safety", /atomic/i],
+    ["conflict safety", /conflict/i],
+    ["rollback safety", /rollback/i],
+    ["verified versus declarative assurance", /verified[\s\S]{0,100}declarative|declarative[\s\S]{0,100}verified/i],
+    ["legacy-plan compatibility", /legacy[ -]plan|older plan|plan-only/i],
+    ["plan-runner backend", /plan-runner/i],
+    ["inline backend", /inline/i],
+    ["subagent backend", /subagents?/i],
+    ["tickets backend", /tickets/i],
+  ]) assert.match(release, pattern, `CHANGELOG documents ${label}`);
+});
+
+test("CI runs the complete suite, both plugin validators, and the Codex skill validator", () => {
+  const workflow = read(".github/workflows/validate.yml");
+  assert.ok(workflow.includes("node --test tests/*.test.js"), "CI runs the complete Node suite");
+  assert.match(workflow, /claude plugin validate \./, "CI runs the Claude plugin validator");
+  assert.match(workflow, /python3\s+["']?\$RUNNER_TEMP\/validate_codex_plugin\.py["']?\s+\./,
+    "CI runs the pinned Codex plugin validator");
+  assert.match(workflow, /codex[\s\S]{0,80}skill[\s\S]{0,80}valid/i,
+    "CI runs the Codex skill validator");
+  assert.match(workflow, /claude\[['"]version['"]\][\s\S]{0,120}codex\[['"]version['"]\][\s\S]{0,120}package\[['"]version['"]\]/,
+    "CI fails when synchronized versions diverge");
 });

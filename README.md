@@ -62,6 +62,20 @@ task carries owned files, interfaces, and the full text of its EARS criteria - c
 plan-runner's TDD agents write the code. Unresolved assumptions carry into the plan header as
 flagged constraints, never dropped.
 
+For a new plan, that same run creates a four-artifact bundle:
+
+- the canonical plan and its planned source skeleton (file and export placeholders);
+- an adjacent, versioned skeleton manifest (`<plan-stem>.skeleton.json`); and
+- an adjacent, versioned typed dependency graph (`<plan-stem>.graph.json`).
+
+The manifest records whether each planned path is created, verified against supported existing
+content, or preserved as declarative/unverified opaque content. The graph captures typed task,
+file/module, and contract relationships. Every plan task also carries self-contained per-task
+`Graph context` (owned, consumed, produced, and relevant dependency edges), so downstream
+consumers can understand its local dependencies without reconstructing or loading either sidecar.
+Invoke this bundle generation as `/ideas:plan [approved spec]` in Claude Code or
+`$ideas:plan [approved spec]` in Codex.
+
 The Ideas plan skill does not stop at the written file. Once the plan is written (or, on re-entry into an
 already-planned spec, immediately after a one-question "resume remaining tasks or regenerate"
 check), it presents a completion gate: one question offering, in order, "Execute with plan-runner"
@@ -115,10 +129,14 @@ Verification:
 
     node --test tests/*.test.js
     claude plugin validate .
+    codex plugin validate .
+
+CI also validates every bundled skill against Codex's supported frontmatter fields and requires
+the skill name to match its folder.
 
 ## Releasing
 
-A release is not done at the four-place version bump (plugin.json, package.json,
+A release is not done at the five-place version bump (both plugin manifests, package.json,
 CHANGELOG.md, contract-test pin). Two more places must move, or installs silently
 lag behind main:
 

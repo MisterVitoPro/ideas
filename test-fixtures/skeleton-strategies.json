@@ -1,0 +1,329 @@
+{
+  "schemaVersion": 1,
+  "strategyRows": [
+    {
+      "id": "javascript-esm-mjs",
+      "language": "JavaScript ESM",
+      "filePattern": "**/*.mjs",
+      "safePlaceholder": "Create UTF-8 text `export {};` followed by one LF.",
+      "importRule": "Emit only static side-effect `import \"<specifier>\";` declarations for graph imports whose literal relative specifier is explicit in the normalized plan; never synthesize packages, bindings, or extensions.",
+      "exportRule": "Use `export {};` for an empty module and emit named exports only when every exported name is explicit in a planned public contract.",
+      "compatibilityRule": "Existing `.mjs` content is compatible only when the built-in ESM parser verifies the planned file node and every required literal import and explicit export connection.",
+      "nonReplacementRule": "Verify compatible existing content byte-for-byte in place; preserve incompatible content, classify it opaque, and report a conflict instead of rewriting it.",
+      "fixtureId": "supported-javascript-esm-mjs"
+    },
+    {
+      "id": "javascript-commonjs-cjs",
+      "language": "JavaScript CommonJS",
+      "filePattern": "**/*.cjs",
+      "safePlaceholder": "Create UTF-8 text `'use strict';` then a blank line then `module.exports = {};`, with one final LF.",
+      "importRule": "Emit only `require(\"<specifier>\");` statements for graph imports whose literal relative specifier is explicit in the normalized plan; never synthesize packages, bindings, or extensions.",
+      "exportRule": "Use `module.exports = {};` for an empty module and add object properties only when every exported name is explicit in a planned public contract.",
+      "compatibilityRule": "Existing `.cjs` content is compatible only when the built-in CommonJS parser verifies the planned file node and every required literal require and module export connection.",
+      "nonReplacementRule": "Verify compatible existing content byte-for-byte in place; preserve incompatible content, classify it opaque, and report a conflict instead of rewriting it.",
+      "fixtureId": "supported-javascript-commonjs-cjs"
+    },
+    {
+      "id": "typescript-esm-ts",
+      "language": "TypeScript ESM",
+      "filePattern": "**/*.ts",
+      "safePlaceholder": "Create UTF-8 text `export {};` followed by one LF; this row does not cover `.tsx`, `.mts`, or `.cts`.",
+      "importRule": "Emit only static side-effect `import \"<specifier>\";` declarations for graph imports whose literal relative specifier is explicit in the normalized plan; never invent values, types, packages, or extensions.",
+      "exportRule": "Use `export {};` for an empty module and emit named or type exports only when their names and kind are explicit in a planned public contract.",
+      "compatibilityRule": "Existing `.ts` content is compatible only when the built-in TypeScript parser verifies the planned file node and every required literal import and explicit value-or-type export connection.",
+      "nonReplacementRule": "Verify compatible existing content byte-for-byte in place; preserve incompatible content, classify it opaque, and report a conflict instead of rewriting it.",
+      "fixtureId": "supported-typescript-esm-ts"
+    },
+    {
+      "id": "python-module-py",
+      "language": "Python module",
+      "filePattern": "**/*.py",
+      "safePlaceholder": "Create UTF-8 text `__all__ = []` followed by one LF.",
+      "importRule": "Emit only `import <module>` statements for graph imports whose dotted module identifier is explicit in the normalized plan and consists solely of valid Python identifier segments.",
+      "exportRule": "Use `__all__ = []` for an empty module and add quoted names only when every exported name is explicit in a planned public contract.",
+      "compatibilityRule": "Existing `.py` content is compatible only when the built-in Python parser verifies the planned file node and every required explicit import and `__all__` export connection.",
+      "nonReplacementRule": "Verify compatible existing content byte-for-byte in place; preserve incompatible content, classify it opaque, and report a conflict instead of rewriting it.",
+      "fixtureId": "supported-python-module-py"
+    }
+  ],
+  "opaqueFallback": {
+    "missingPlaceholder": "zero-byte file",
+    "missingAction": "create-safe-placeholder",
+    "existingAction": "preserve-opaque",
+    "semanticValidation": false,
+    "connectionAssurance": "declarative-unverified"
+  },
+  "supported": [
+    {
+      "id": "supported-javascript-esm-mjs",
+      "description": "Canonical fixture for the javascript-esm-mjs matrix row.",
+      "paths": [
+        {
+          "path": "src/feature.mjs",
+          "language": "JavaScript ESM",
+          "strategyId": "javascript-esm-mjs",
+          "existing": false,
+          "contentAfter": "import \"./dependency.mjs\";\nexport {};\n",
+          "connections": [
+            {
+              "type": "imports",
+              "target": "src/dependency.mjs",
+              "specifier": "./dependency.mjs",
+              "assurance": "syntactically-verified"
+            }
+          ],
+          "expected": {
+            "action": "create-safe-placeholder",
+            "classification": "created",
+            "plannedNodeVerified": true,
+            "requiredConnectionsVerified": true,
+            "replaceExisting": false,
+            "assurance": "syntactically-verified"
+          }
+        }
+      ],
+      "expected": {
+        "requiresProjectGenerator": false,
+        "requiresNetwork": false,
+        "builds": false,
+        "typeChecks": false,
+        "structuralGenerationSucceeds": true,
+        "schemaValid": true,
+        "assuranceHonest": true
+      }
+    },
+    {
+      "id": "supported-javascript-commonjs-cjs",
+      "description": "Canonical fixture for the javascript-commonjs-cjs matrix row and compatible existing-content behavior.",
+      "paths": [
+        {
+          "path": "lib/feature.cjs",
+          "language": "JavaScript CommonJS",
+          "strategyId": "javascript-commonjs-cjs",
+          "existing": true,
+          "contentBefore": "'use strict';\nrequire(\"./dependency.cjs\");\nmodule.exports = {};\n",
+          "connections": [
+            {
+              "type": "imports",
+              "target": "lib/dependency.cjs",
+              "specifier": "./dependency.cjs",
+              "assurance": "syntactically-verified"
+            },
+            {
+              "type": "exports",
+              "target": "public-contract:feature",
+              "assurance": "syntactically-verified"
+            }
+          ],
+          "expected": {
+            "action": "verify-compatible",
+            "classification": "verified-compatible",
+            "compatible": true,
+            "plannedNodeVerified": true,
+            "requiredConnectionsVerified": true,
+            "replaceExisting": false,
+            "contentAfter": "'use strict';\nrequire(\"./dependency.cjs\");\nmodule.exports = {};\n",
+            "assurance": "syntactically-verified"
+          }
+        }
+      ],
+      "expected": {
+        "requiresProjectGenerator": false,
+        "requiresNetwork": false,
+        "builds": false,
+        "typeChecks": false,
+        "structuralGenerationSucceeds": true,
+        "schemaValid": true,
+        "assuranceHonest": true
+      }
+    },
+    {
+      "id": "supported-typescript-esm-ts",
+      "description": "Canonical fixture for the typescript-esm-ts matrix row.",
+      "paths": [
+        {
+          "path": "src/feature.ts",
+          "language": "TypeScript ESM",
+          "strategyId": "typescript-esm-ts",
+          "existing": false,
+          "contentAfter": "import \"./dependency.js\";\nexport {};\n",
+          "connections": [
+            {
+              "type": "imports",
+              "target": "src/dependency.ts",
+              "specifier": "./dependency.js",
+              "assurance": "syntactically-verified"
+            }
+          ],
+          "expected": {
+            "action": "create-safe-placeholder",
+            "classification": "created",
+            "plannedNodeVerified": true,
+            "requiredConnectionsVerified": true,
+            "replaceExisting": false,
+            "assurance": "syntactically-verified"
+          }
+        }
+      ],
+      "expected": {
+        "requiresProjectGenerator": false,
+        "requiresNetwork": false,
+        "builds": false,
+        "typeChecks": false,
+        "structuralGenerationSucceeds": true,
+        "schemaValid": true,
+        "assuranceHonest": true
+      }
+    },
+    {
+      "id": "supported-python-module-py",
+      "description": "Canonical fixture for the python-module-py matrix row.",
+      "paths": [
+        {
+          "path": "package/feature.py",
+          "language": "Python module",
+          "strategyId": "python-module-py",
+          "existing": false,
+          "contentAfter": "import dependency\n__all__ = []\n",
+          "connections": [
+            {
+              "type": "imports",
+              "target": "package/dependency.py",
+              "specifier": "dependency",
+              "assurance": "syntactically-verified"
+            }
+          ],
+          "expected": {
+            "action": "create-safe-placeholder",
+            "classification": "created",
+            "plannedNodeVerified": true,
+            "requiredConnectionsVerified": true,
+            "replaceExisting": false,
+            "assurance": "syntactically-verified"
+          }
+        }
+      ],
+      "expected": {
+        "requiresProjectGenerator": false,
+        "requiresNetwork": false,
+        "builds": false,
+        "typeChecks": false,
+        "structuralGenerationSucceeds": true,
+        "schemaValid": true,
+        "assuranceHonest": true
+      }
+    }
+  ],
+  "mixed": [
+    {
+      "id": "mixed-typescript-and-opaque",
+      "description": "Per-path selection combines a checked-in TypeScript strategy with the opaque fallback.",
+      "paths": [
+        {
+          "path": "src/index.ts",
+          "strategyId": "typescript-esm-ts",
+          "existing": false,
+          "contentAfter": "export {};\n",
+          "connections": [],
+          "expected": {
+            "action": "create-safe-placeholder",
+            "classification": "created",
+            "assurance": "syntactically-verified"
+          }
+        },
+        {
+          "path": "native/feature.rs",
+          "strategyId": null,
+          "existing": true,
+          "contentBefore": "pub fn feature() {}\n",
+          "connections": [
+            {
+              "type": "exports",
+              "target": "public-contract:native-feature",
+              "assurance": "declarative-unverified"
+            }
+          ],
+          "expected": {
+            "action": "preserve-opaque",
+            "classification": "opaque-preserved",
+            "editExisting": false,
+            "semanticValidation": false,
+            "contentAfter": "pub fn feature() {}\n",
+            "assurance": "declarative-unverified"
+          }
+        }
+      ],
+      "expected": {
+        "requiresProjectGenerator": false,
+        "requiresNetwork": false,
+        "builds": false,
+        "typeChecks": false,
+        "structuralGenerationSucceeds": true,
+        "schemaValid": true,
+        "assuranceHonest": true
+      }
+    }
+  ],
+  "unsupported": [
+    {
+      "id": "unsupported-missing-and-existing",
+      "description": "Unlisted combinations use only the lower-assurance opaque fallback.",
+      "paths": [
+        {
+          "path": "scripts/feature.rb",
+          "strategyId": null,
+          "existing": false,
+          "contentAfter": "",
+          "connections": [
+            {
+              "type": "produces",
+              "target": "public-contract:ruby-feature",
+              "assurance": "declarative-unverified"
+            }
+          ],
+          "expected": {
+            "action": "create-safe-placeholder",
+            "classification": "created",
+            "semanticValidation": false,
+            "assurance": "declarative-unverified"
+          }
+        },
+        {
+          "path": "cmd/feature.go",
+          "strategyId": null,
+          "existing": true,
+          "contentBefore": "package main\n\nfunc feature() {}\n",
+          "connections": [
+            {
+              "type": "imports",
+              "target": "module:example.invalid/dependency",
+              "assurance": "declarative-unverified"
+            },
+            {
+              "type": "exports",
+              "target": "public-contract:go-feature",
+              "assurance": "declarative-unverified"
+            }
+          ],
+          "expected": {
+            "action": "preserve-opaque",
+            "classification": "opaque-preserved",
+            "editExisting": false,
+            "semanticValidation": false,
+            "contentAfter": "package main\n\nfunc feature() {}\n",
+            "assurance": "declarative-unverified"
+          }
+        }
+      ],
+      "expected": {
+        "requiresProjectGenerator": false,
+        "requiresNetwork": false,
+        "builds": false,
+        "typeChecks": false,
+        "structuralGenerationSucceeds": true,
+        "schemaValid": true,
+        "assuranceHonest": true
+      }
+    }
+  ]
+}

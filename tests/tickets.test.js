@@ -70,10 +70,43 @@ test("tickets skill: rendered issue body carries no vendor-specific fields", () 
   assert.ok(body.includes("no vendor-specific fields"), "no-vendor-fields rule stated");
 });
 
+test("tickets skill: rendered issue preserves Graph context from the task section", () => {
+  const { body } = fm(read(SKILL));
+  const emission = read("skills/tickets/references/emission.md");
+  assert.match(body, /Graph context:/i, "rendering names the Graph context field");
+  assert.match(body, /task section[\s\S]{0,250}Graph context:/i,
+    "Graph context is copied from the canonical Markdown task section");
+  assert.match(body + "\n" + emission, /(?:read|use|consult)[^\n]*(?:only )?(?:the )?plan file/i,
+    "ticket projection remains plan-file-only");
+  assert.match(body + "\n" + emission, /(?:do not|never)[^\n]*(?:graph|manifest) sidecar/i,
+    "ticket rendering does not dereference graph artifacts");
+});
+
 test("tickets skill: reads only the plan file, never the source spec or ledger", () => {
   const { body } = fm(read(SKILL));
   assert.ok(body.includes("Reads only the plan file"), "plan-file-only input rule stated");
   assert.ok(body.includes("never the source spec or ledger"), "spec/ledger exclusion stated");
+});
+
+test("tickets Definition-of-Ready treats Graph context as additive", () => {
+  const emission = read("skills/tickets/references/emission.md");
+  assert.match(emission, /Graph context:[\s\S]{0,250}additive/i,
+    "Graph context is an additive field at the gate");
+  assert.match(emission, /self-contained/i, "self-containedness remains required");
+  assert.match(emission, /full EARS|EARS text/i, "full EARS acceptance text remains required");
+  assert.match(emission, /file-isolated/i, "file isolation remains required");
+  assert.match(emission, /(?:legacy|existing) nine-field plan/i,
+    "the gate retains compatibility with legacy nine-field tasks");
+});
+
+test("tickets Definition-of-Ready rejects Graph context sidecar references", () => {
+  const emission = read("skills/tickets/references/emission.md");
+  assert.match(emission, /Graph context:[\s\S]{0,300}sidecar/i,
+    "the gate identifies sidecar-backed Graph context as invalid");
+  assert.match(emission, /held back|fails?[^\n]*self-contained/i,
+    "the existing self-containedness gate rejects the task");
+  assert.match(emission, /(?:do not|never)[^\n]*dereference/i,
+    "the tickets consumer never follows the sidecar reference");
 });
 
 // --- Error handling: no GitHub remote / missing gh / unauthenticated gh ---

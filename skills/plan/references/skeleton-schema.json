@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mistervitopro.dev/ideas/plan-skeleton-v1.schema.json",
+  "title": "Ideas plan skeleton manifest v1",
+  "description": "The complete classification of planned repository paths for one plan bundle.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "plan": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Canonical plan identity shared by every artifact in the bundle."
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entry"
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "plan",
+    "entries"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Normalized repository-relative path from the shared plan model."
+        },
+        "classification": {
+          "type": "string",
+          "enum": [
+            "created",
+            "verified-compatible",
+            "opaque-preserved"
+          ]
+        },
+        "assurance": {
+          "type": "string",
+          "enum": [
+            "syntactically-verified",
+            "declarative-unverified"
+          ]
+        }
+      },
+      "required": [
+        "path",
+        "classification",
+        "assurance"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
