@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT = path.join(__dirname, "..");
-const RELEASE_VERSION = "0.8.0";
+const RELEASE_VERSION = "0.9.0";
 function read(relPath) {
   return fs.readFileSync(path.join(ROOT, relPath), "utf8").replace(/\r\n/g, "\n");
 }

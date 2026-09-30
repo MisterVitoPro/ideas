@@ -1,6 +1,6 @@
 {
   "name": "ideas",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Idea-to-build pipeline: create audited specs and implementation plans with source skeletons, versioned manifests, and typed dependency graphs.",
   "author": {
     "name": "MisterVitoPro"
