@@ -26,6 +26,43 @@ Build the model in memory before writing anything. It contains:
 Emitters must not parse, read back, or infer from a written artifact to produce another artifact.
 Validate the complete model and all projected task slices before bundle emission.
 
+## Bundle request (the serialized model)
+
+The model is serialized once as a JSON request and handed to `scripts/materialize-bundle.mjs`,
+which validates it, derives everything derivable, and emits the whole bundle in one transaction
+(`references/materialization.md` has the full field contract and CLI). Minimal shape:
+
+```json
+{
+  "schemaVersion": 1,
+  "repositoryRoot": "<absolute repo root>",
+  "planPath": "<root>/plans/YYYY-MM-DD-<slug>.plan.md",
+  "document": {
+    "title": "...", "goal": "...", "sourceSpec": "<root>/specs/YYYY-MM-DD-<slug>.md",
+    "flaggedConstraints": [],
+    "tasks": [{
+      "title": "...", "taskId": "<slug>-t01", "ownedFiles": ["src/a.mjs"],
+      "interfaces": "...", "acceptanceCriteria": ["WHEN ... THE SYSTEM SHALL ..."],
+      "verification": "...", "nonGoals": ["..."], "blockedBy": [], "constraints": "..."
+    }]
+  },
+  "entries": [{ "path": "src/a.mjs", "strategyId": "javascript-esm-mjs" }],
+  "graph": {
+    "nodes": [{ "id": "public-contract:a-api", "type": "public-contract" }],
+    "edges": [{ "type": "produces", "source": "task:<slug>-t01", "target": "public-contract:a-api",
+                "assurance": "syntactically-verified" }]
+  }
+}
+```
+
+Derived by the script, never written by hand: the plan identity and sidecar paths (from
+`planPath`), task and file nodes, `owns` edges (from `ownedFiles`), `depends-on` edges (from
+`blockedBy`), edge IDs, placeholder contents, every task's `Graph context:` slice, and the
+rendered plan Markdown. `entries` is optional: any owned file without an entry is an auto entry
+(strategy inferred from its extension when missing, preserved as opaque when it already exists).
+`graph` is optional and only names module/contract nodes and connection edges; an omitted
+connection assurance defaults to `declarative-unverified`.
+
 ## Bundle artifacts and emission boundary
 
 One successful emission creates a coordinated bundle:

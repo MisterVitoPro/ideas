@@ -3,6 +3,21 @@
 ## [Unreleased]
 
 ### Changed
+- Plan bundle emission is now script-driven. The plan skill serializes its normalized model as one
+  bundle request and runs `skills/plan/scripts/materialize-bundle.mjs`, which validates the
+  plan-format rules (reference-only criteria, overlapping owned files, dangling or missing
+  blocked-by edges, cycles, unfilled placeholders), derives task and file nodes, `owns` and
+  `depends-on` edges, edge IDs, placeholder contents, and every per-task `Graph context` slice,
+  renders the canonical plan Markdown, and writes plan, skeleton, manifest, and graph in one
+  transaction. The model no longer hand-writes any of these, which shortens plan runs and removes
+  the drift between plan, slices, and sidecars.
+- `materialize-bundle.mjs` gained a CLI (`node materialize-bundle.mjs <request.json>
+  [--preflight]`) that prints one JSON report and uses the exit code for refusals and conflicts.
+  The exported `materializeBundle` API and legacy request shape are unchanged.
+- Bundle request entries may omit `strategyId` and `content`: a missing path receives the
+  placeholder of the strategy its extension selects (or a zero-byte opaque placeholder) and an
+  existing path is verified only when its bytes equal that placeholder, otherwise preserved as
+  opaque. Owned files without an entry become such auto entries.
 - The interview's spec/plan/ADR output root is now auto-detect: it checks the project's existing
   docs layout, preferring conventional names, and falls back to `docs/` when no existing docs
   directory is found. The resolution rule is specified in

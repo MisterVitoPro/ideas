@@ -30,6 +30,10 @@ Construct node IDs deterministically from type and canonical identity: `task:<st
 `edge:<type>:<source-id>-><target-id>`. The normalized model MUST contain at most one edge of a
 given type between the same endpoints.
 
+`scripts/materialize-bundle.mjs` implements every rule in this document: it derives task and file
+nodes, `owns` and `depends-on` edges, and edge IDs from the bundle request, runs the checks below,
+and renders each `Graph context:` slice. The plan procedure never performs these steps by hand.
+
 ## Full graph and manifest validation
 
 Validate the complete graph and manifest against their version 1 schemas, then apply these checks
