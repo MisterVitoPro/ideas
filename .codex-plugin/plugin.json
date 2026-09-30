@@ -1,6 +1,6 @@
 {
   "name": "ideas",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Turn a raw idea into an audited spec and plan with a source skeleton, versioned manifest, typed dependency graph, and optional GitHub issues.",
   "author": {
     "name": "MisterVitoPro",

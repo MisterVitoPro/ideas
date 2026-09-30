@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.9.0] - 2026-09-29
 
 ### Changed
 - Plan bundle emission is now script-driven. The plan skill serializes its normalized model as one

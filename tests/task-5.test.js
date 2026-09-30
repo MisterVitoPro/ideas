@@ -38,28 +38,28 @@ test("spec-auditor.md classification contract pinned as invariants", () => {
   );
 });
 
-test("release: client manifests are synchronized at 0.8.0", () => {
+test("release: client manifests are synchronized at 0.9.0", () => {
   const claude = JSON.parse(read(".claude-plugin/plugin.json"));
   const codex = JSON.parse(read(".codex-plugin/plugin.json"));
-  assert.strictEqual(claude.version, "0.8.0");
+  assert.strictEqual(claude.version, "0.9.0");
   assert.strictEqual(codex.version, claude.version);
 });
 
-test("release: package version is synchronized at 0.8.0", () => {
+test("release: package version is synchronized at 0.9.0", () => {
   const pkg = JSON.parse(read("package.json"));
-  assert.strictEqual(pkg.version, "0.8.0");
+  assert.strictEqual(pkg.version, "0.9.0");
 });
 
-test("release: CHANGELOG.md has a 0.8.0 entry", () => {
+test("release: CHANGELOG.md has a 0.9.0 entry", () => {
   const changelog = read("CHANGELOG.md");
-  assert.ok(changelog.includes("## [0.8.0]"), "CHANGELOG has an entry for 0.8.0");
+  assert.ok(changelog.includes("## [0.9.0]"), "CHANGELOG has an entry for 0.9.0");
 });
 
-test("release: contract-test version pin is 0.8.0", () => {
+test("release: contract-test version pin is 0.9.0", () => {
   const contractSrc = read("tests/contract.test.js");
   const pin = contractSrc.match(/^const RELEASE_VERSION = "([^"]+)";$/m);
   assert.ok(pin, "tests/contract.test.js declares a parseable RELEASE_VERSION pin");
-  assert.strictEqual(pin[1], "0.8.0", "tests/contract.test.js pins metadata checks to 0.8.0");
+  assert.strictEqual(pin[1], "0.9.0", "tests/contract.test.js pins metadata checks to 0.9.0");
 });
 
 test("release: README documents the template v2 sections", () => {

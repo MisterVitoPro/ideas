@@ -1,6 +1,6 @@
 {
   "name": "ideas",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "description": "Claude Code and Codex plugin for audited specs, plans, source skeletons, and dependency graphs.",
   "author": "MisterVitoPro",
