@@ -58,20 +58,29 @@ never load that file.
 7. Emit a flat ordered task list - no wave groupings. Waving stays plan-runner's analyzer's job;
    two waving algorithms fighting over one plan is worse than either alone. The file SHALL be
    accepted by the plan-runner run skill unchanged.
-8. Build one normalized plan model as defined in `references/artifact-bundle.md`, including every
-   task, planned path and stub contract, graph node and edge, and projected task graph slice. Fill
-   every task section per `references/task-format.md`: Task ID, Owned files, Interfaces, Graph
-   context, Acceptance criteria (full EARS text, never a bare reference number), Verification command(s),
-   Non-goals, Blocked by, Constraints. Task bodies remain contracts: never function bodies, test code, or shell commands;
-   planned skeleton files are separate bundle artifacts.
-9. Self-check before writing: a reference-only pattern is a criterion number with no WHEN/IF/SHALL
-   sentence. If any task's acceptance-criteria block contains one:
-   refuse to write the plan and name the offending task.
-10. Emit the complete bundle before the completion gate, directly from that model per `references/artifact-bundle.md`: the
-    canonical plan at `<root>/plans/YYYY-MM-DD-<slug>.plan.md`, adjacent version-1 manifest and
-    graph sidecars, and planned skeleton. Do not infer one artifact from another. State the resolved
-    plan path in the confirmation. Commit is git-gated: when git is absent, write the bundle and
-    note that committing was skipped.
+8. Build one normalized plan model as a single bundle request JSON, shaped per
+   `references/artifact-bundle.md`, written to a temporary file outside the repository. It carries
+   the plan header, every task per `references/task-format.md` (Task ID, Owned files, Interfaces,
+   Acceptance criteria as full EARS text, never a bare reference number, Verification command(s),
+   Non-goals, Blocked by, Constraints), and only the graph parts the script cannot derive:
+   module/contract nodes and imports/exports/produces/consumes edges. Do not hand-write Graph
+   context, node/edge IDs, owns or depends-on edges, sidecars, or placeholder file contents; the
+   script derives all of them. Task bodies remain contracts:
+   never function bodies, test code, or shell commands; planned skeleton files are separate
+   bundle artifacts.
+9. Self-check is script-enforced: a reference-only pattern is a criterion number with no
+   WHEN/IF/SHALL sentence, and the script will refuse to write the plan and name the offending task
+   (also for overlapping owned files, dangling or missing blocked-by edges, cycles, and `<...>`
+   placeholders). Fix the request and re-run; never patch the plan file by hand.
+10. Emit the complete bundle before the completion gate by running
+    `node <this skill's dir>/scripts/materialize-bundle.mjs <request.json>` once (Node is required;
+    if it is unavailable, say so in one sentence and stop with nothing written). One transaction
+    writes the canonical plan at `<root>/plans/YYYY-MM-DD-<slug>.plan.md`, adjacent version-1
+    manifest and graph sidecars, and the planned skeleton; nothing is inferred from a written
+    artifact. Read only the printed JSON report: `ok: false` names conflicts or the refusal, and
+    the bundle is then incomplete, so report it and stop. State the resolved plan path in the
+    confirmation. Commit is git-gated: when git is absent, write the bundle and note that
+    committing was skipped.
 11. Completion gate: once the complete bundle is written and committed (or, on resume, immediately after
     the re-entry check), present exactly one structured question call before ending the run, offering, in
     order: "Execute with plan-runner" (only when `plan-runner:run` appears in the session's
@@ -117,7 +126,9 @@ never load that file.
 See `references/task-format.md` for the full field-by-field contract.
 
 ## Known gotchas
-- `<root>/plans/` may not exist in the target repo - create it on first write.
+- `<root>/plans/` may not exist in the target repo - the script creates it on first write.
+- The script path is relative to this SKILL.md, not the target repo; `repositoryRoot` in the
+  request is the target repo's absolute root.
 - Re-emission: diffing by task title/owned-files overlap before assigning IDs matters more than
   it looks - a reordered task is still the same task, and losing that identity breaks
   the Ideas tickets skill's upsert lookup downstream.

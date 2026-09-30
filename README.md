@@ -68,6 +68,9 @@ For a new plan, that same run creates a four-artifact bundle:
 - an adjacent, versioned skeleton manifest (`<plan-stem>.skeleton.json`); and
 - an adjacent, versioned typed dependency graph (`<plan-stem>.graph.json`).
 
+The whole bundle is written by one offline Node script from a single request JSON that the plan
+skill assembles; the script derives the graph edges, per-task graph slices, placeholder contents,
+and the plan Markdown itself, and refuses malformed plans before writing anything.
 The manifest records whether each planned path is created, verified against supported existing
 content, or preserved as declarative/unverified opaque content. The graph captures typed task,
 file/module, and contract relationships. Every plan task also carries self-contained per-task

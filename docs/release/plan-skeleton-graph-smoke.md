@@ -42,7 +42,9 @@ fallbacks, have `declarative-unverified` assurance.
 When a scenario calls the materializer directly, create a local JSON request shaped as documented
 in `skills/plan/references/materialization.md`, point `repositoryRoot` at `<scratch>`, and invoke
 the exported `materializeBundle` function from
-`<ideas-plugin-root>/skills/plan/scripts/materialize-bundle.mjs`. Keep this request under
+`<ideas-plugin-root>/skills/plan/scripts/materialize-bundle.mjs` (or its CLI,
+`node <that file> <request.json> [--preflight]`, whose `--preflight` flag equals
+`{ preflightOnly: true }`). Keep this request under
 `<scratch>/.smoke/`; it is test input, not part of the expected bundle. Use
 `{ preflightOnly: true }` or `{ injectFailureAfterWrites: 1 }` exactly where stated.
 
